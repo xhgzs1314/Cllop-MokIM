@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>MOK工具箱 | 娱乐与实用工具集</title>
+    <script src="../../ast/flparser.js"></script>
+    <link rel="stylesheet" href="../../ast/fontawe/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f1f5f9 0%, #e6edf4 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+       
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(148, 163, 184, 0.15);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5b6ef7;
+        }
+
+    
+        .hero-section {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 2rem 1.5rem 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(91,110,247,0.2) 0%, rgba(91,110,247,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -20%;
+            left: -10%;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(74,144,226,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        .hero-title {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(4px);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .logo-text h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.3px;
+        }
+        .logo-text p {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        .tool-count-badge {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(4px);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+        .search-wrapper {
+            position: relative;
+            max-width: 560px;
+            margin-top: 12px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 14px 20px 14px 50px;
+            background: rgba(255,255,255,0.96);
+            border: none;
+            border-radius: 56px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #0f172a;
+            box-shadow: 0 12px 28px -8px rgba(0,0,0,0.2);
+            transition: all 0.25s;
+            backdrop-filter: blur(8px);
+        }
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 18px 32px -12px rgba(0,0,0,0.25);
+            transform: translateY(-1px);
+            background: white;
+        }
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #5b6ef7;
+            font-size: 1.2rem;
+            pointer-events: none;
+        }
+        .clear-search {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: color 0.2s;
+        }
+        .clear-search:hover {
+            color: #ef4444;
+        }
+
+ 
+        .tools-container {
+            max-width: 1280px;
+            margin: 2rem auto 1.5rem;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+ 
+        .tool-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0,0,0,0.03);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .tool-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(91,110,247,0.08), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+        .tool-card:hover {
+            transform: translateY(-6px) scale(1.01);
+            background: rgba(255, 255, 255, 0.96);
+            border-color: rgba(91, 110, 247, 0.4);
+            box-shadow: 0 24px 40px -16px rgba(0, 0, 0, 0.2);
+        }
+        .tool-card:hover::after {
+            opacity: 1;
+        }
+        .tool-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .tool-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(125deg, #f0f4fe, #e9effa);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            color: #4a90e2;
+            transition: 0.2s;
+        }
+        .tool-card:hover .tool-icon {
+            background: #4a90e2;
+            color: white;
+            transform: scale(0.98);
+        }
+        .tool-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.2px;
+            flex: 1;
+        }
+        .tool-description {
+            color: #334155;
+            font-size: 0.9rem;
+            line-height: 1.45;
+            margin: 0 0 8px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .tool-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 18px;
+        }
+        .open-hint {
+            font-size: 0.75rem;
+            color: #5b6ef7;
+            background: rgba(91,110,247,0.1);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .tool-card:hover .open-hint {
+            background: #5b6ef7;
+            color: white;
+        }
+        .tool-tag {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+      
+        .empty-state, .loading-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 1rem;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(8px);
+            border-radius: 48px;
+            margin-top: 1rem;
+        }
+        .empty-icon {
+            font-size: 3.6rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(91,110,247,0.2);
+            border-radius: 50%;
+            border-top-color: #5b6ef7;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+      
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem 3rem;
+        }
+        .pagination {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(12px);
+            padding: 8px 16px;
+            border-radius: 60px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        .page-btn {
+            background: transparent;
+            border: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #334155;
+            font-family: inherit;
+        }
+        .page-btn.active {
+            background: #4a90e2;
+            color: white;
+            box-shadow: 0 4px 12px rgba(74,144,226,0.3);
+        }
+        .page-btn:hover:not(:disabled) {
+            background: #e2e8f0;
+            transform: translateY(-1px);
+        }
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+ 
+        .footer-note {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #5b6ef7;
+            padding: 1rem 1rem 2rem;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            margin-top: 1rem;
+        }
+
+
+        @media (max-width: 680px) {
+            .hero-title {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .tools-container {
+                grid-template-columns: 1fr;
+                padding: 0 1rem;
+                gap: 1rem;
+            }
+            .tool-card {
+                padding: 1.25rem;
+            }
+            .pagination {
+                gap: 6px;
+                padding: 6px 12px;
+            }
+            .page-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero-section">
+    <div class="hero-container">
+        <div class="hero-title">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i class="fas fa-cubes"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>MOK·工具箱</h1>
+                    <p>即兴·轻量·创意集</p>
+                </div>
+            </div>
+            <div class="tool-count-badge" id="totalCountBadge">
+                <i class="fas fa-toolbox"></i> <span id="totalCountSpan">0</span> 项工具
+            </div>
+        </div>
+        <div class="search-wrapper">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="搜索工具名称、描述... 例如: 2048, 密码, 轮盘">
+            <button class="clear-search" id="clearSearchBtn" aria-label="清空"><i class="fas fa-times-circle"></i></button>
+        </div>
+    </div>
+</div>
+
+<div class="tools-container" id="toolsContainer">
+    <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <div style="color: #334155;">正在加载工具集，请稍后...</div>
+    </div>
+</div>
+
+<div class="pagination-wrapper" id="paginationWrapper">
+    <div class="pagination" id="pagination"></div>
+</div>
+
+<div class="footer-note">
+    <i class="fas fa-magic"></i> 即开即用 · 离线可用 · 分享快乐
+</div>
+
+<script>
+    function getQueryString(name) {
+        const reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        const r = window.location.search.substr(1).match(reg);
+        return r ? decodeURIComponent(r[2]) : null;
+    }
+
+    let keyword = getQueryString('keyword') || '';
+    let allTools = [];
+    let filteredTools = [];
+    let currentPage = 1;
+    const pageSize = 12;   
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    const toolsContainer = document.getElementById('toolsContainer');
+    const paginationDiv = document.getElementById('pagination');
+    const totalCountSpan = document.getElementById('totalCountSpan');
+    if (searchInput) {
+        searchInput.value = keyword;
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                keyword = searchInput.value.trim();
+                currentPage = 1;
+                filterAndRender();
+            }
+        });
+        searchInput.addEventListener('input', () => {
+            keyword = searchInput.value.trim();
+            currentPage = 1;
+            filterAndRender();
+        });
+    }
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            keyword = '';
+            currentPage = 1;
+            filterAndRender();
+            searchInput.focus();
+        });
+    }
+
+    function updateTotalBadge() {
+        if (totalCountSpan) totalCountSpan.innerText = allTools.length;
+    }
+
+    function filterAndRender() {
+        filterTools();
+        renderTools();
+        renderPagination();
+    }
+
+    function filterTools() {
+        if (!keyword) {
+            filteredTools = [...allTools];
+        } else {
+            const lowerKeyword = keyword.toLowerCase();
+            filteredTools = allTools.filter(tool =>
+                (tool.name && tool.name.toLowerCase().includes(lowerKeyword)) ||
+                (tool.description && tool.description.toLowerCase().includes(lowerKeyword))
+            );
+        }
+    }
+    function getToolIcon(toolId, toolName) {
+        const id = (toolId || '').toLowerCase();
+        const name = (toolName || '').toLowerCase();
+        if (id.includes('luckyp') || name.includes('轮盘')) return 'fa-sliders-h';
+        if (id.includes('coin') || name.includes('硬币')) return 'fa-coins';
+        if (id.includes('fyltest') || name.includes('反应')) return 'fa-stopwatch';
+        if (id.includes('md5') || id.includes('base64')) return 'fa-hashtag';
+        if (id.includes('2048') || name.includes('2048')) return 'fa-th';
+        if (id.includes('sldlbooms') || name.includes('扫雷')) return 'fa-bomb';
+        if (id.includes('stpasssc')) return 'fa-key';
+        if (id.includes('textcompare')) return 'fa-code-branch';
+        if (id.includes('boomfire')) return 'fa-fire';
+        if (id.includes('machfuncp')) return 'fa-chart-line';
+        if (id.includes('jsoneditor')) return 'fa-brackets-curly';
+        if (id.includes('zxshufktattt')) return 'fa-brain';
+        if (id.includes('mgunkonwos')) return 'fa-drafting-compass';
+        return 'fa-puzzle-piece';
+    }
+    function getIconGradient() {
+        const gradients = [
+            'linear-gradient(125deg, #eef2ff, #e0e7ff)',
+            'linear-gradient(125deg, #f0fdf4, #dcfce7)',
+            'linear-gradient(125deg, #fff7ed, #ffedd5)',
+            'linear-gradient(125deg, #fef2f2, #fee2e2)',
+            'linear-gradient(125deg, #f4f4f9, #e9eef5)'
+        ];
+        return gradients[Math.floor(Math.random() * gradients.length)];
+    }
+
+    function renderTools() {
+        if (allTools.length === 0) {
+            toolsContainer.innerHTML = `<div class="loading-state"><div class="loading-spinner"></div><div style="color:#334155;">加载中</div></div>`;
+            return;
+        }
+
+        const startIndex = (currentPage - 1) * pageSize;
+        const currentTools = filteredTools.slice(startIndex, startIndex + pageSize);
+
+        if (currentTools.length === 0) {
+            toolsContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fas fa-search"></i></div>
+                    <div style="font-size: 1.1rem; font-weight: 500;">未找到相关工具</div>
+                    <div style="font-size: 0.85rem; color: #5b6ef7; margin-top: 8px;">试试其他关键词，或清空搜索框</div>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        for (const tool of currentTools) {
+            const iconClass = getToolIcon(tool.id, tool.name);
+            const gradientStyle = getIconGradient();
+            const safeName = escapeHtml(tool.name || '未命名工具');
+            const safeDesc = escapeHtml(tool.description || '暂无介绍，点击探索惊喜');
+            html += `
+                <div class="tool-card" data-id="${escapeHtml(tool.id)}" data-name="${safeName}">
+                    <div class="tool-header">
+                        <div class="tool-icon" style="background: ${gradientStyle};">
+                            <i class="fas ${iconClass}"></i>
+                        </div>
+                        <div class="tool-name">${safeName}</div>
+                    </div>
+                    <div class="tool-description">${safeDesc}</div>
+                    <div class="tool-meta">
+                        <span class="tool-tag"><i class="far fa-clock"></i> 即开即用</span>
+                        <span class="open-hint"><i class="fas fa-arrow-right"></i> 立即体验</span>
+                    </div>
+                </div>
+            `;
+        }
+        toolsContainer.innerHTML = html;
+        document.querySelectorAll('.tool-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.tool-card')) {
+                    const toolId = card.getAttribute('data-id');
+                    if (toolId) {
+                        const href = `tools/${toolId}/index.html`;
+                        if (typeof mui !== 'undefined' && mui.openWindow) {
+                            mui.openWindow({
+                                url: href,
+                                id: toolId,
+                                show: { autoShow: true, aniShow: 'none' },
+                                waiting: { autoShow: false }
+                            });
+                        } else {
+                            window.open(href, '_blank');
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(filteredTools.length / pageSize);
+        if (totalPages <= 1 || allTools.length === 0) {
+            paginationDiv.innerHTML = '';
+            return;
+        }
+
+        let btns = '';
+        btns += `<button class="page-btn prev" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i> 上一页</button>`;
+
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+        for (let i = startPage; i <= endPage; i++) {
+            btns += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+        }
+
+        btns += `<button class="page-btn next" ${currentPage === totalPages ? 'disabled' : ''}>下一页 <i class="fas fa-chevron-right"></i></button>`;
+        paginationDiv.innerHTML = btns;
+        paginationDiv.querySelectorAll('.page-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (btn.classList.contains('prev')) {
+                    if (currentPage > 1) currentPage--;
+                    else return;
+                } else if (btn.classList.contains('next')) {
+                    if (currentPage < totalPages) currentPage++;
+                    else return;
+                } else if (btn.dataset.page) {
+                    currentPage = parseInt(btn.dataset.page);
+                } else {
+                    return;
+                }
+                renderTools();
+                renderPagination();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    }
+
+    
+    function loadTools() {
+        allTools = [];
+        const xhr = new XMLHttpRequest();
+        xhr.open('get', '../../tools.fl', true);
+        xhr.responseType = 'text';
+        const parser = new FLParser();
+        const streamParser = parser.createStreamParser(
+            (record) => {
+                if (record && record.id && record.name) {
+                    allTools.push({
+                        id: record.id,
+                        name: record.name,
+                        description: record.description || '点击探索精彩功能'
+                    });
+                    updateTotalBadge();
+                    filterAndRender();  
+                }
+            },
+            (error) => { console.warn('解析错误:', error); },
+            () => {
+                console.log('所有工具加载完毕, 总数:', allTools.length);
+                updateTotalBadge();
+                filterAndRender();
+            },
+            (lineNumber) => { }
+        );
+
+        let lastProcessedLength = 0;
+        xhr.onprogress = () => {
+            if (xhr.response) {
+                const newContent = xhr.response.substring(lastProcessedLength);
+                if (newContent) {
+                    streamParser.write(newContent);
+                    lastProcessedLength = xhr.response.length;
+                }
+            }
+        };
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                const remaining = xhr.response.substring(lastProcessedLength);
+                if (remaining) streamParser.write(remaining);
+                streamParser.end();
+            } else {
+                toolsContainer.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div>加载失败 (${xhr.status})，请刷新重试</div></div>`;
+            }
+        };
+        xhr.onerror = () => {
+            toolsContainer.innerHTML = `<div class="empty-state"><div class="empty-icon">🌐</div><div>网络错误, 无法获取工具列表</div></div>`;
+        };
+        xhr.send();
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTools();
+    });
+</script>
+</body>
+</html>

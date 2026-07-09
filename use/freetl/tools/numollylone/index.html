@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高级数独游戏</title>
+    <script src="/ast/3.4.17"></script>
+    <link href="/ast/fontawe/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        info: '#06B6D4',
+                        light: '#F3F4F6',
+                        dark: '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Montserrat', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .cell-highlight {
+                @apply bg-blue-100 transition-all duration-200;
+            }
+            .cell-selected {
+                @apply bg-blue-200 ring-2 ring-primary transition-all duration-200;
+            }
+            .number-highlight {
+                @apply bg-green-100 transition-all duration-200;
+            }
+            .conflict {
+                @apply bg-red-100 text-danger transition-all duration-200;
+            }
+            .sudoku-grid {
+                @apply grid grid-cols-9 grid-rows-9 gap-[1px] bg-dark rounded-lg p-1 shadow-xl mx-auto;
+            }
+            .sudoku-cell {
+                @apply bg-white text-center text-lg font-medium h-12 w-12 flex items-center justify-center cursor-pointer transition-all duration-150;
+            }
+            .sudoku-cell[data-section="0"],
+            .sudoku-cell[data-section="2"],
+            .sudoku-cell[data-section="6"],
+            .sudoku-cell[data-section="8"] {
+                @apply bg-gray-50;
+            }
+            .sudoku-cell[data-section="4"] {
+                @apply bg-gray-100;
+            }
+            .sudoku-cell.initial {
+                @apply font-bold text-dark;
+            }
+            .sudoku-cell:not(.initial) {
+                @apply text-primary;
+            }
+            .section-border {
+                @apply border-2 border-dark;
+            }
+            .btn-primary {
+                @apply bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg shadow transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50;
+            }
+            .btn-secondary {
+                @apply bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-lg shadow transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-secondary/50;
+            }
+            .btn-danger {
+                @apply bg-danger hover:bg-danger/90 text-white font-medium py-2 px-4 rounded-lg shadow transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-danger/50;
+            }
+            .btn-info {
+                @apply bg-info hover:bg-info/90 text-white font-medium py-2 px-4 rounded-lg shadow transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-info/50;
+            }
+            .keyboard {
+                @apply grid grid-cols-3 gap-2 mt-4 max-w-xs mx-auto;
+            }
+            .keyboard-number {
+                @apply bg-light hover:bg-gray-200 text-dark font-medium py-2 px-4 rounded-lg shadow transition-all duration-200 cursor-pointer;
+            }
+            .keyboard-number:hover {
+                @apply transform scale-105;
+            }
+            .timer {
+                @apply text-2xl font-bold text-primary mb-2;
+            }
+            .stats-card {
+                @apply bg-white rounded-lg shadow p-4 mb-4 transform transition-all duration-300 hover:shadow-lg;
+            }
+            .hint {
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+                }
+                70% {
+                    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+                }
+                100% {
+                    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+                }
+            }
+            .confetti {
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                background-color: var(--color);
+                opacity: 0.7;
+                border-radius: 50%;
+                animation: confetti-fall var(--fall-duration) ease-in forwards,
+                           confetti-sway var(--sway-duration) ease-in-out alternate infinite;
+            }
+            @keyframes confetti-fall {
+                to {
+                    transform: translateY(100vh);
+                }
+            }
+            @keyframes confetti-sway {
+                0% {
+                    transform: translateX(0);
+                }
+                100% {
+                    transform: translateX(var(--sway-distance));
+                }
+            }
+        }
+    </style>
+    <style>
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <header class="text-center mb-8">
+            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-display font-bold text-dark mb-2">
+                <span class="text-primary">高级</span>数独
+            </h1>
+            <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+                挑战你的逻辑思维能力，从简单到极难，多种难度级别任你选择
+            </p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <div class="lg:col-span-1 space-y-6">
+                <div class="stats-card">
+                    <h2 class="text-xl font-bold text-dark mb-3 flex items-center">
+                        <i class="fa fa-trophy text-warning mr-2"></i>游戏统计
+                    </h2>
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-gray-600">当前难度</p>
+                            <div class="flex items-center mt-1">
+                                <div class="flex">
+                                    <i id="difficulty-1" class="fa fa-star text-warning"></i>
+                                    <i id="difficulty-2" class="fa fa-star text-gray-300"></i>
+                                    <i id="difficulty-3" class="fa fa-star text-gray-300"></i>
+                                    <i id="difficulty-4" class="fa fa-star text-gray-300"></i>
+                                    <i id="difficulty-5" class="fa fa-star text-gray-300"></i>
+                                </div>
+                                <span id="difficulty-text" class="ml-2 text-sm font-medium">简单</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">已用时间</p>
+                            <p id="timer" class="timer">00:00</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">剩余提示</p>
+                            <div class="flex">
+                                <i id="hint-1" class="fa fa-lightbulb-o text-warning text-xl"></i>
+                                <i id="hint-2" class="fa fa-lightbulb-o text-warning text-xl ml-1"></i>
+                                <i id="hint-3" class="fa fa-lightbulb-o text-warning text-xl ml-1"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">错误次数</p>
+                            <div class="flex items-center">
+                                <i class="fa fa-times text-danger mr-2"></i>
+                                <span id="mistakes" class="font-medium">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card">
+                    <h2 class="text-xl font-bold text-dark mb-3 flex items-center">
+                        <i class="fa fa-cog text-primary mr-2"></i>游戏设置
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="difficulty" class="block text-gray-600 mb-2">选择难度</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="range" id="difficulty-slider" min="1" max="5" value="1"
+                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary">
+                                <span id="difficulty-value" class="text-primary font-medium min-w-[20px]">1</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button id="new-game" class="btn-primary flex-1">
+                                <i class="fa fa-refresh mr-1"></i>新游戏
+                            </button>
+                            <button id="check" class="btn-secondary flex-1">
+                                <i class="fa fa-check mr-1"></i>检查
+                            </button>
+                            <button id="hint-btn" class="btn-info flex-1">
+                                <i class="fa fa-lightbulb-o mr-1"></i>提示
+                            </button>
+                            <button id="solve" class="btn-danger flex-1">
+                                <i class="fa fa-magic mr-1"></i>求解
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card hidden md:block">
+                    <h2 class="text-xl font-bold text-dark mb-3 flex items-center">
+                        <i class="fa fa-book text-accent mr-2"></i>游戏规则
+                    </h2>
+                    <ul class="space-y-2 text-gray-600">
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                            <span>在空格中填入数字1-9</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                            <span>每行、每列和每个3x3小九宫格内的数字不能重复</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                            <span>难度越高，初始数字越少，解题时间限制越短</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                            <span>使用提示会增加完成时间，过多错误会降低评分</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white rounded-lg shadow-xl p-4 md:p-6">
+                    <div class="relative overflow-hidden">
+                        <div id="sudoku-grid" class="sudoku-grid max-w-lg mx-auto">
+
+                        </div>
+                    </div>
+
+
+                    <div class="md:hidden mt-6">
+                        <div class="keyboard">
+                            <button class="keyboard-number" data-number="1">1</button>
+                            <button class="keyboard-number" data-number="2">2</button>
+                            <button class="keyboard-number" data-number="3">3</button>
+                            <button class="keyboard-number" data-number="4">4</button>
+                            <button class="keyboard-number" data-number="5">5</button>
+                            <button class="keyboard-number" data-number="6">6</button>
+                            <button class="keyboard-number" data-number="7">7</button>
+                            <button class="keyboard-number" data-number="8">8</button>
+                            <button class="keyboard-number" data-number="9">9</button>
+                            <button id="delete-mobile" class="keyboard-number bg-gray-300">
+                                <i class="fa fa-trash-o"></i>
+                            </button>
+                            <button id="clear-mobile" class="keyboard-number bg-gray-300">
+                                <i class="fa fa-eraser"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="hidden md:block bg-white rounded-lg shadow-xl p-4 max-w-lg mx-auto">
+                    <div class="keyboard">
+                        <button class="keyboard-number" data-number="1">1</button>
+                        <button class="keyboard-number" data-number="2">2</button>
+                        <button class="keyboard-number" data-number="3">3</button>
+                        <button class="keyboard-number" data-number="4">4</button>
+                        <button class="keyboard-number" data-number="5">5</button>
+                        <button class="keyboard-number" data-number="6">6</button>
+                        <button class="keyboard-number" data-number="7">7</button>
+                        <button class="keyboard-number" data-number="8">8</button>
+                        <button class="keyboard-number" data-number="9">9</button>
+                        <button id="delete" class="keyboard-number bg-gray-300">
+                            <i class="fa fa-trash-o"></i>
+                        </button>
+                        <button id="clear" class="keyboard-number bg-gray-300">
+                            <i class="fa fa-eraser"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+
+        <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 hidden">
+            <div class="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full transform transition-all duration-300 scale-95 opacity-0"
+                id="modal-content">
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+                        <i class="fa fa-trophy text-warning text-3xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-dark mb-2">恭喜完成!</h2>
+                    <p class="text-gray-600 mb-4">你成功解决了这个数独难题</p>
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">难度:</span>
+                            <span id="final-difficulty" class="font-medium"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">用时:</span>
+                            <span id="final-time" class="font-medium"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">错误次数:</span>
+                            <span id="final-mistakes" class="font-medium"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">得分:</span>
+                            <span id="final-score" class="font-medium text-primary"></span>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <button id="new-game-modal" class="btn-primary flex-1">
+                            <i class="fa fa-refresh mr-1"></i>新游戏
+                        </button>
+                        <button id="close-modal" class="btn-secondary flex-1">
+                            <i class="fa fa-times mr-1"></i>关闭
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            var init_num_ts = 0;
+            
+            const gameState = {
+                board: Array(9).fill().map(() => Array(9).fill(0)),
+                solution: Array(9).fill().map(() => Array(9).fill(0)),
+                selectedCell: null,
+                timer: null,
+                startTime: 0,
+                elapsedTime: 0,
+                mistakes: 0,
+                hintsUsed: 0,
+                difficulty: 1,
+                isChecking: false
+            };
+
+            
+            const difficultySettings = {
+                1: { emptyCells: 30, timeLimit: 600, hintCount: 3 }, 
+                2: { emptyCells: 40, timeLimit: 480, hintCount: 2 }, 
+                3: { emptyCells: 48, timeLimit: 360, hintCount: 1 }, 
+                4: { emptyCells: 54, timeLimit: 240, hintCount: 1 }, 
+                5: { emptyCells: 58, timeLimit: 180, hintCount: 0 }  
+            };
+
+            
+            function initGame() {
+                generateBoard();
+                renderBoard();
+                setupEventListeners();
+                updateDifficultyUI();
+                updateTimer();
+                updateMistakes();
+                updateHints();
+                init_num_ts+=1;
+            }
+
+            
+            function generateSolution() {
+                solveSudoku(gameState.solution);
+                
+                gameState.board = gameState.solution.map(row => [...row]);
+            }
+
+            
+            function generateBoard() {
+                generateSolution();
+
+                const difficulty = gameState.difficulty;
+                const emptyCells = difficultySettings[difficulty].emptyCells;
+
+                let removed = 0;
+                while (removed < emptyCells) {
+                    const row = Math.floor(Math.random() * 9);
+                    const col = Math.floor(Math.random() * 9);
+
+                    if (gameState.board[row][col] !== 0) {
+                        gameState.board[row][col] = 0;
+                        removed++;
+                    }
+                }
+            }
+
+            
+            function renderBoard() {
+                const grid = document.getElementById('sudoku-grid');
+                grid.innerHTML = '';
+
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'sudoku-cell';
+                        cell.dataset.row = i;
+                        cell.dataset.col = j;
+                        cell.dataset.section = Math.floor(i / 3) * 3 + Math.floor(j / 3);
+
+                        if (gameState.board[i][j] !== 0) {
+                            cell.textContent = gameState.board[i][j];
+                            if (gameState.solution[i][j] === gameState.board[i][j]) {
+                                cell.classList.add('initial');
+                            }
+                        }
+
+                        cell.addEventListener('click', () => selectCell(i, j));
+                        grid.appendChild(cell);
+                    }
+                }
+            }
+
+            
+            function selectCell(row, col) {
+                
+                if (gameState.selectedCell) {
+                    const prevCell = document.querySelector(`[data-row="${gameState.selectedCell.row}"][data-col="${gameState.selectedCell.col}"]`);
+                    if (prevCell) prevCell.classList.remove('cell-selected');
+                }
+
+                
+                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                if (cell.classList.contains('initial')) return;
+
+                
+                gameState.selectedCell = { row, col };
+                cell.classList.add('cell-selected');
+
+                
+                highlightNumbers(gameState.board[row][col]);
+            }
+
+            
+            function highlightNumbers(number) {
+                
+                document.querySelectorAll('.cell-highlight').forEach(el => {
+                    el.classList.remove('cell-highlight');
+                });
+                document.querySelectorAll('.number-highlight').forEach(el => {
+                    el.classList.remove('number-highlight');
+                });
+
+                if (number === 0) return;
+
+                
+                document.querySelectorAll(`.sudoku-cell:not(.initial):not(.cell-selected)`).forEach(cell => {
+                    if (parseInt(cell.textContent) === number) {
+                        cell.classList.add('number-highlight');
+                    }
+                });
+
+                
+                if (gameState.selectedCell) {
+                    const { row, col } = gameState.selectedCell;
+                    const section = Math.floor(row / 3) * 3 + Math.floor(col / 3);
+
+                    document.querySelectorAll(`.sudoku-cell[data-row="${row}"]`).forEach(cell => {
+                        if (!cell.classList.contains('cell-selected')) {
+                            cell.classList.add('cell-highlight');
+                        }
+                    });
+
+                    document.querySelectorAll(`.sudoku-cell[data-col="${col}"]`).forEach(cell => {
+                        if (!cell.classList.contains('cell-selected')) {
+                            cell.classList.add('cell-highlight');
+                        }
+                    });
+
+                    document.querySelectorAll(`.sudoku-cell[data-section="${section}"]`).forEach(cell => {
+                        if (!cell.classList.contains('cell-selected') &&
+                            parseInt(cell.dataset.row) !== row &&
+                            parseInt(cell.dataset.col) !== col) {
+                            cell.classList.add('cell-highlight');
+                        }
+                    });
+                }
+            }
+
+            
+            function setupEventListeners() {
+                
+                document.querySelectorAll('.keyboard-number').forEach(btn => {
+                    if (btn.dataset.number) {
+                        btn.addEventListener('click', () => {
+                            if (gameState.selectedCell) {
+                                placeNumber(parseInt(btn.dataset.number));
+                            }
+                        });
+                    }
+                });
+
+                
+                document.getElementById('delete').addEventListener('click', deleteNumber);
+                document.getElementById('delete-mobile').addEventListener('click', deleteNumber);
+
+                
+                document.getElementById('clear').addEventListener('click', clearBoard);
+                document.getElementById('clear-mobile').addEventListener('click', clearBoard);
+
+                
+                document.getElementById('check').addEventListener('click', checkSolution);
+
+                
+                document.getElementById('hint-btn').addEventListener('click', getHint);
+
+                
+                document.getElementById('solve').addEventListener('click', solveBoard);
+
+                
+                document.getElementById('new-game').addEventListener('click', startNewGame);
+                document.getElementById('new-game-modal').addEventListener('click', startNewGame);
+
+                
+                document.getElementById('close-modal').addEventListener('click', closeSuccessModal);
+
+                
+                const difficultySlider = document.getElementById('difficulty-slider');
+                difficultySlider.addEventListener('input', (e) => {
+                    gameState.difficulty = parseInt(e.target.value);
+                    document.getElementById('difficulty-value').textContent = gameState.difficulty;
+                    updateDifficultyUI();
+                });
+
+                
+                document.addEventListener('keydown', (e) => {
+                    if (!gameState.selectedCell) return;
+
+                    const key = e.key;
+                    if (/^[1-9]$/.test(key)) {
+                        placeNumber(parseInt(key));
+                    } else if (key === 'Delete' || key === 'Backspace') {
+                        deleteNumber();
+                    }
+                });
+            }
+
+            
+            function placeNumber(number) {
+                if (!gameState.selectedCell) return;
+
+                const { row, col } = gameState.selectedCell;
+
+                
+                if (gameState.board[row][col] === number) return;
+
+                
+                gameState.board[row][col] = number;
+
+                
+                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                cell.textContent = number;
+
+                
+                if (gameState.isChecking) {
+                    checkConflicts();
+                }
+
+                
+                if (isGameComplete()) {
+                    completeGame();
+                }
+            }
+
+            
+            function deleteNumber() {
+                if (!gameState.selectedCell) return;
+
+                const { row, col } = gameState.selectedCell;
+
+                
+                if (gameState.solution[row][col] !== gameState.board[row][col]) {
+                    gameState.board[row][col] = 0;
+
+                    
+                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                    cell.textContent = '';
+
+                    
+                    cell.classList.remove('conflict');
+                }
+            }
+
+            
+            function clearBoard() {
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        if (gameState.solution[i][j] !== gameState.board[i][j]) {
+                            gameState.board[i][j] = 0;
+
+                            
+                            const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                            cell.textContent = '';
+                            cell.classList.remove('conflict');
+                        }
+                    }
+                }
+
+                
+                if (gameState.selectedCell) {
+                    const cell = document.querySelector(`[data-row="${gameState.selectedCell.row}"][data-col="${gameState.selectedCell.col}"]`);
+                    cell.classList.remove('cell-selected');
+                    gameState.selectedCell = null;
+                }
+
+                
+                document.querySelectorAll('.cell-highlight').forEach(el => {
+                    el.classList.remove('cell-highlight');
+                });
+                document.querySelectorAll('.number-highlight').forEach(el => {
+                    el.classList.remove('number-highlight');
+                });
+
+                
+                gameState.mistakes = 0;
+                updateMistakes();
+            }
+
+            
+            function checkSolution() {
+                gameState.isChecking = true;
+                checkConflicts();
+
+                
+                if (isGameComplete()) {
+                    completeGame();
+                }
+
+                
+                setTimeout(() => {
+                    document.querySelectorAll('.conflict').forEach(cell => {
+                        cell.classList.remove('conflict');
+                    });
+                    gameState.isChecking = false;
+                }, 3000);
+            }
+
+            
+            function checkConflicts() {
+                
+                document.querySelectorAll('.conflict').forEach(cell => {
+                    cell.classList.remove('conflict');
+                });
+
+                let hasConflict = false;
+
+                
+                for (let i = 0; i < 9; i++) {
+                    const row = gameState.board[i];
+                    for (let j = 0; j < 9; j++) {
+                        const num = row[j];
+                        if (num !== 0) {
+                            
+                            for (let k = j + 1; k < 9; k++) {
+                                if (row[k] === num) {
+                                    const cell1 = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                                    const cell2 = document.querySelector(`[data-row="${i}"][data-col="${k}"]`);
+                                    cell1.classList.add('conflict');
+                                    cell2.classList.add('conflict');
+                                    hasConflict = true;
+                                }
+                            }
+
+                            
+                            for (let k = i + 1; k < 9; k++) {
+                                if (gameState.board[k][j] === num) {
+                                    const cell1 = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                                    const cell2 = document.querySelector(`[data-row="${k}"][data-col="${j}"]`);
+                                    cell1.classList.add('conflict');
+                                    cell2.classList.add('conflict');
+                                    hasConflict = true;
+                                }
+                            }
+
+                            
+                            const startRow = Math.floor(i / 3) * 3;
+                            const startCol = Math.floor(j / 3) * 3;
+
+                            for (let m = startRow; m < startRow + 3; m++) {
+                                for (let n = startCol; n < startCol + 3; n++) {
+                                    if (m !== i && n !== j && gameState.board[m][n] === num) {
+                                        const cell1 = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                                        const cell2 = document.querySelector(`[data-row="${m}"][data-col="${n}"]`);
+                                        cell1.classList.add('conflict');
+                                        cell2.classList.add('conflict');
+                                        hasConflict = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                
+                if (hasConflict) {
+                    gameState.mistakes++;
+                    updateMistakes();
+                }
+
+                return hasConflict;
+            }
+
+            
+            function getHint() {
+                const difficulty = gameState.difficulty;
+                const hintCount = difficultySettings[difficulty].hintCount;
+
+                if (gameState.hintsUsed >= hintCount) {
+                    alert('提示次数已用完！');
+                    return;
+                }
+
+                
+                let emptyCells = [];
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        if (gameState.board[i][j] === 0) {
+                            emptyCells.push({ row: i, col: j });
+                        }
+                    }
+                }
+
+                if (emptyCells.length === 0) {
+                    alert('没有空单元格需要提示！');
+                    return;
+                }
+
+                
+                const randomIndex = Math.floor(Math.random() * emptyCells.length);
+                const { row, col } = emptyCells[randomIndex];
+
+                
+                gameState.board[row][col] = gameState.solution[row][col];
+
+                
+                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                cell.textContent = gameState.solution[row][col];
+                cell.classList.add('hint');
+
+                
+                gameState.hintsUsed++;
+                updateHints();
+
+                
+                setTimeout(() => {
+                    cell.classList.remove('hint');
+                }, 3000);
+
+                
+                if (isGameComplete()) {
+                    completeGame();
+                }
+            }
+
+            
+            function solveBoard() {
+                
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        gameState.board[i][j] = gameState.solution[i][j];
+
+                        
+                        const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                        cell.textContent = gameState.solution[i][j];
+
+                        
+                        cell.classList.add('hint');
+                        setTimeout(() => {
+                            cell.classList.remove('hint');
+                        }, 1000 + (i * 9 + j) * 50);
+                    }
+                }
+
+                
+                if (isGameComplete()) {
+                    completeGame();
+                }
+            }
+
+            
+            function startNewGame() {
+                
+                if (gameState.timer) {
+                    clearInterval(gameState.timer);
+                }
+                init_num_ts++;
+                
+                gameState.board = Array(9).fill().map(() => Array(9).fill(0));
+                gameState.solution = Array(9).fill().map(() => Array(9).fill(0));
+                gameState.selectedCell = null;
+                gameState.elapsedTime = 0;
+                gameState.mistakes = 0;
+                gameState.hintsUsed = 0;
+
+                
+                generateBoard();
+                renderBoard();
+
+                
+                startTimer();
+
+                
+                updateDifficultyUI();
+                updateTimer();
+                updateMistakes();
+                updateHints();
+
+                
+                closeSuccessModal();
+            }
+
+            
+            function startTimer() {
+                if (gameState.timer) {
+                    clearInterval(gameState.timer);
+                }
+
+                gameState.startTime = Date.now() - gameState.elapsedTime;
+                gameState.timer = setInterval(updateTimer, 1000);
+            }
+
+            
+            function updateTimer() {
+                gameState.elapsedTime = Date.now() - gameState.startTime;
+                const seconds = Math.floor(gameState.elapsedTime / 1000) % 60;
+                const minutes = Math.floor(gameState.elapsedTime / 60000);
+
+                const timerElement = document.getElementById('timer');
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                
+                const timeLimit = difficultySettings[gameState.difficulty].timeLimit;
+                if (gameState.elapsedTime / 1000 >= timeLimit) {
+                    if(init_num_ts >= 2){
+                        alert('时间到！挑战失败！');
+                        solveBoard();
+                    }
+                }
+            }
+
+            
+            function updateMistakes() {
+                document.getElementById('mistakes').textContent = gameState.mistakes;
+            }
+
+            
+            function updateHints() {
+                const hintCount = difficultySettings[gameState.difficulty].hintCount;
+
+                
+                for (let i = 1; i <= 3; i++) {
+                    const hintIcon = document.getElementById(`hint-${i}`);
+                    if (i <= hintCount) {
+                        hintIcon.classList.remove('text-gray-300');
+                        hintIcon.classList.add('text-warning');
+                    } else {
+                        hintIcon.classList.remove('text-warning');
+                        hintIcon.classList.add('text-gray-300');
+                    }
+                }
+
+                
+                for (let i = 1; i <= gameState.hintsUsed; i++) {
+                    const hintIcon = document.getElementById(`hint-${i}`);
+                    hintIcon.classList.remove('text-warning');
+                    hintIcon.classList.add('text-gray-300');
+                }
+            }
+
+            
+            function updateDifficultyUI() {
+                const difficulty = gameState.difficulty;
+                const difficultyText = ['简单', '中等', '困难', '专家', '大师'][difficulty - 1];
+
+                
+                document.getElementById('difficulty-text').textContent = difficultyText;
+
+                
+                for (let i = 1; i <= 5; i++) {
+                    const star = document.getElementById(`difficulty-${i}`);
+                    if (i <= difficulty) {
+                        star.classList.remove('text-gray-300');
+                        star.classList.add('text-warning');
+                    } else {
+                        star.classList.remove('text-warning');
+                        star.classList.add('text-gray-300');
+                    }
+                }
+
+                
+                const timeLimit = difficultySettings[difficulty].timeLimit;
+                const minutes = Math.floor(timeLimit / 60);
+                const seconds = timeLimit % 60;
+
+                
+                updateHints();
+            }
+
+            
+            function isGameComplete() {
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        if (gameState.board[i][j] === 0 || gameState.board[i][j] !== gameState.solution[i][j]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
+            
+            function completeGame() {
+                
+                if (gameState.timer) {
+                    clearInterval(gameState.timer);
+                }
+
+                
+                const timeTaken = Math.floor(gameState.elapsedTime / 1000);
+                const timeLimit = difficultySettings[gameState.difficulty].timeLimit;
+                const maxScore = 1000;
+
+                
+                let score = gameState.difficulty * 200;
+
+                
+                const timeBonus = Math.max(0, Math.floor((timeLimit - timeTaken) / timeLimit * 300));
+                score += timeBonus;
+
+                
+                const mistakePenalty = gameState.mistakes * 20;
+                score = Math.max(0, score - mistakePenalty);
+
+                
+                const hintPenalty = gameState.hintsUsed * 50;
+                score = Math.max(0, score - hintPenalty);
+
+                
+                const modal = document.getElementById('success-modal');
+                const modalContent = document.getElementById('modal-content');
+
+                
+                document.getElementById('final-difficulty').textContent = ['简单', '中等', '困难', '专家', '大师'][gameState.difficulty - 1];
+
+                const seconds = timeTaken % 60;
+                const minutes = Math.floor(timeTaken / 60);
+                document.getElementById('final-time').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                document.getElementById('final-mistakes').textContent = gameState.mistakes;
+                document.getElementById('final-score').textContent = score;
+
+                
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
+
+                
+                createConfetti();
+            }
+
+            
+            function closeSuccessModal() {
+                const modal = document.getElementById('success-modal');
+                const modalContent = document.getElementById('modal-content');
+
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-95', 'opacity-0');
+
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+
+            
+            function createConfetti() {
+                const colors = ['#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B'];
+                const container = document.querySelector('.container');
+
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.setProperty('--color', colors[Math.floor(Math.random() * colors.length)]);
+                    confetti.style.setProperty('--fall-duration', `${Math.random() * 3 + 2}s`);
+                    confetti.style.setProperty('--sway-duration', `${Math.random() * 4 + 3}s`);
+                    confetti.style.setProperty('--sway-distance', `${Math.random() * 100 - 50}px`);
+                    confetti.style.left = `${Math.random() * 100}vw`;
+                    confetti.style.top = `${-Math.random() * 100}px`;
+
+                    container.appendChild(confetti);
+
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 5000);
+                }
+            }
+
+            
+            function solveSudoku(board) {
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        if (board[i][j] === 0) {
+                            for (let num = 1; num <= 9; num++) {
+                                if (isValidMove(board, i, j, num)) {
+                                    board[i][j] = num;
+
+                                    if (solveSudoku(board)) {
+                                        return true;
+                                    } else {
+                                        board[i][j] = 0;
+                                    }
+                                }
+                            }
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
+            
+            function isValidMove(board, row, col, num) {
+                
+                for (let i = 0; i < 9; i++) {
+                    if (board[row][i] === num) return false;
+                }
+
+                
+                for (let i = 0; i < 9; i++) {
+                    if (board[i][col] === num) return false;
+                }
+
+                
+                const startRow = Math.floor(row / 3) * 3;
+                const startCol = Math.floor(col / 3) * 3;
+
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        if (board[startRow + i][startCol + j] === num) return false;
+                    }
+                }
+
+                return true;
+            }
+
+            
+            initGame();
+            startTimer();
+        });
+    </script>
+</body>
+
+</html>

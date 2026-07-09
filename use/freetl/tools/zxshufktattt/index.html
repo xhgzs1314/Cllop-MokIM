@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线舒尔特方格游戏 - 注意力测试</title>
+    <script src="/ast/3.4.17"></script>
+    <link href="/ast/fontawe/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36D399',
+                        accent: '#FF9F43',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .transition-all-300 {
+                transition: all 300ms ease-in-out;
+            }
+            .grid-center {
+                display: grid;
+                place-items: center;
+            }
+            .btn-hover {
+                @apply hover:shadow-lg hover:-translate-y-1 transition-all duration-300;
+            }
+            .card-shadow {
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            }
+            .memory-hidden {
+           user-select: none;
+            color: transparent;
+        
+        }
+        }
+    </style>
+    <style>
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-inter text-dark">
+
+    <nav class="bg-white/80 backdrop-blur-md fixed top-0 w-full z-50 shadow-sm transition-all duration-300">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-th text-primary text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-primary">舒尔特方格</h1>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#" class="text-dark/70 hover:text-primary transition-colors">首页</a>
+                <a href="#how-to-play" class="text-dark/70 hover:text-primary transition-colors">游戏规则</a>
+                <a href="#statistics" class="text-dark/70 hover:text-primary transition-colors">游戏统计</a>
+                <a href="#modes" class="text-dark/70 hover:text-primary transition-colors">游戏模式</a>
+            </div>
+            <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                <i class="fa fa-moon-o text-dark/70"></i>
+            </button>
+            <button id="mobile-menu-btn" class="md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors">
+                <i class="fa fa-bars text-dark/70"></i>
+            </button>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="#" class="text-dark/70 hover:text-primary py-2 transition-colors">首页</a>
+                <a href="#how-to-play" class="text-dark/70 hover:text-primary py-2 transition-colors">游戏规则</a>
+                <a href="#statistics" class="text-dark/70 hover:text-primary py-2 transition-colors">游戏统计</a>
+                <a href="#modes" class="text-dark/70 hover:text-primary py-2 transition-colors">游戏模式</a>
+            </div>
+        </div>
+    </nav>
+
+
+    <main class="container mx-auto px-4 pt-24 pb-16">
+
+        <section class="text-center mb-12">
+            <h2 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-primary mb-4 text-shadow">注意力测试</h2>
+            <p class="text-lg md:text-xl text-dark/80 max-w-2xl mx-auto mb-8">
+                舒尔特方格是一种有效训练注意力的方法，通过快速找到并点击数字，提高你的注意力集中能力和反应速度。
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <div class="bg-white rounded-lg p-4 card-shadow w-64">
+                    <div class="text-4xl text-primary mb-2"><i class="fa fa-bolt"></i></div>
+                    <h3 class="font-bold text-lg mb-1">提高注意力</h3>
+                    <p class="text-dark/70">通过专注寻找数字，锻炼你的注意力集中能力</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 card-shadow w-64">
+                    <div class="text-4xl text-primary mb-2"><i class="fa fa-clock-o"></i></div>
+                    <h3 class="font-bold text-lg mb-1">提升反应速度</h3>
+                    <p class="text-dark/70">不断挑战自我，缩短完成时间</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 card-shadow w-64">
+                    <div class="text-4xl text-primary mb-2"><i class="fa fa-line-chart"></i></div>
+                    <h3 class="font-bold text-lg mb-1">追踪进度</h3>
+                    <p class="text-dark/70">记录你的成绩，查看进步情况</p>
+                </div>
+            </div>
+        </section>
+
+
+        <section class="bg-white rounded-xl p-6 md:p-8 card-shadow mb-12">
+            <div class="flex flex-col md:flex-row gap-8">
+
+                <div class="md:w-1/3">
+                    <h3 class="text-xl font-bold mb-4 text-primary">游戏控制</h3>
+
+
+                    <div class="mb-6">
+                        <label class="block font-medium mb-2 text-dark/80">选择难度:</label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <button id="difficulty-1"
+                                class="difficulty-btn bg-green-50 border border-green-200 text-green-700 py-2 px-4 rounded-lg font-medium btn-hover active">
+                                难度 1
+                            </button>
+                            <button id="difficulty-2"
+                                class="difficulty-btn bg-gray-50 border border-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium btn-hover">
+                                难度 2
+                            </button>
+                            <button id="difficulty-3"
+                                class="difficulty-btn bg-gray-50 border border-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium btn-hover">
+                                难度 3
+                            </button>
+                        </div>
+                        <div class="mt-2 text-sm text-dark/60">
+                            <p id="difficulty-desc">难度1: 5x5方格，适合锻炼基础注意力</p>
+                        </div>
+                    </div>
+
+
+                    <div class="mb-6">
+                        <label class="block font-medium mb-2 text-dark/80">游戏模式:</label>
+                        <select id="game-mode"
+                            class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none">
+                            <option value="classic">经典模式</option>
+                            <option value="reverse">反向模式</option>
+                            <option value="random">随机模式</option>
+                            <option value="memory">记忆模式</option>
+                            <option value="time-attack">限时挑战</option>
+                        </select>
+                        <div class="mt-2 text-sm text-dark/60">
+                            <p id="mode-desc">经典模式: 按顺序点击从1到N的数字</p>
+                        </div>
+                    </div>
+
+
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                        <h4 class="font-bold mb-3 text-dark/80">当前游戏</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <p class="text-sm text-dark/60">已用时间</p>
+                                <p id="timer" class="text-2xl font-bold text-primary">00:00.00</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-dark/60">当前点击</p>
+                                <p id="current-number" class="text-2xl font-bold text-primary">1</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="flex flex-col gap-3">
+                        <button id="start-btn"
+                            class="bg-primary text-white py-3 px-6 rounded-lg font-bold btn-hover flex items-center justify-center">
+                            <i class="fa fa-play mr-2"></i> 开始游戏
+                        </button>
+                        <button id="reset-btn"
+                            class="bg-gray-200 text-dark py-3 px-6 rounded-lg font-bold btn-hover flex items-center justify-center"
+                            disabled>
+                            <i class="fa fa-refresh mr-2"></i> 重新开始
+                        </button>
+                        <button id="share-btn"
+                            class="bg-accent text-white py-3 px-6 rounded-lg font-bold btn-hover flex items-center justify-center"
+                            disabled>
+                            <i class="fa fa-share-alt mr-2"></i> 分享成绩
+                        </button>
+                    </div>
+                </div>
+
+
+                <div class="md:w-2/3 flex flex-col items-center">
+                    <h3 class="text-xl font-bold mb-4 text-primary">舒尔特方格</h3>
+                    <div id="grid-container"
+                        class="relative w-full max-w-md aspect-square bg-gray-50 rounded-lg overflow-hidden">
+                        <div id="grid" class="w-full h-full grid grid-cols-5 gap-1 p-1">
+
+                        </div>
+                        <div id="game-overlay"
+                            class="absolute inset-0 bg-primary/90 flex flex-col items-center justify-center text-white rounded-lg hidden">
+                            <div class="text-6xl mb-4"><i class="fa fa-trophy"></i></div>
+                            <h4 class="text-2xl font-bold mb-2">恭喜完成!</h4>
+                            <p class="text-lg mb-4">你的成绩</p>
+                            <p id="final-time" class="text-4xl font-bold mb-6">00:15.24</p>
+                            <button id="play-again-btn"
+                                class="bg-white text-primary py-2 px-6 rounded-lg font-bold btn-hover">
+                                再玩一次
+                            </button>
+                        </div>
+                    </div>
+
+
+                    <div id="game-message"
+                        class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 hidden">
+                        <p>点击数字 1 开始游戏</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="how-to-play" class="bg-white rounded-xl p-6 md:p-8 card-shadow mb-12">
+            <h3 class="text-2xl font-bold mb-6 text-primary">游戏规则</h3>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-xl font-bold mb-3 text-dark/80">基本玩法</h4>
+                    <ol class="list-decimal pl-5 space-y-2 text-dark/80">
+                        <li>选择难度和游戏模式</li>
+                        <li>点击"开始游戏"按钮</li>
+                        <li>按照游戏模式的规则，点击方格中的目标数字</li>
+                        <li>系统会记录你的完成时间</li>
+                        <li>完成后可以分享你的成绩或再次挑战</li>
+                    </ol>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold mb-3 text-dark/80">难度说明</h4>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <h5 class="font-bold text-green-700 mb-1">难度 1</h5>
+                            <p class="text-dark/70">5x5方格 (25个数字)，适合锻炼基础注意力</p>
+                        </div>
+                        <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <h5 class="font-bold text-yellow-700 mb-1">难度 2</h5>
+                            <p class="text-dark/70">6x6方格 (36个数字)，适合提升注意力和过关速度</p>
+                        </div>
+                        <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <h5 class="font-bold text-red-700 mb-1">难度 3</h5>
+                            <p class="text-dark/70">7x7方格 (49个数字)，适合高阶玩家挑战极限</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="statistics" class="bg-white rounded-xl p-6 md:p-8 card-shadow mb-12">
+            <h3 class="text-2xl font-bold mb-6 text-primary">游戏统计</h3>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                    <h4 class="font-bold text-dark/80 mb-2">游戏次数</h4>
+                    <p id="total-games" class="text-4xl font-bold text-primary">0</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                    <h4 class="font-bold text-dark/80 mb-2">最佳成绩</h4>
+                    <p id="best-time" class="text-4xl font-bold text-primary">--:--.--</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                    <h4 class="font-bold text-dark/80 mb-2">平均用时</h4>
+                    <p id="avg-time" class="text-4xl font-bold text-primary">--:--.--</p>
+                </div>
+            </div>
+            <div class="mt-8">
+                <h4 class="text-xl font-bold mb-4 text-dark/80">最近游戏记录</h4>
+                <div id="history-table" class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    日期</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    难度</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    模式</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    时间</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-center text-gray-500">暂无游戏记录</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="modes" class="bg-white rounded-xl p-6 md:p-8 card-shadow mb-12">
+            <h3 class="text-2xl font-bold mb-6 text-primary">游戏模式</h3>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="border border-gray-200 rounded-lg overflow-hidden transition-all-300 hover:shadow-lg">
+                    <div class="bg-primary p-4 text-white">
+                        <h4 class="text-xl font-bold">经典模式</h4>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-dark/80 mb-3">按照数字顺序，从1开始点击，直到最后一个数字。</p>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-sm text-dark/60"><i class="fa fa-lightbulb-o mr-2"></i> 适合初学者和日常训练</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="border border-gray-200 rounded-lg overflow-hidden transition-all-300 hover:shadow-lg">
+                    <div class="bg-accent p-4 text-white">
+                        <h4 class="text-xl font-bold">反向模式</h4>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-dark/80 mb-3">从最后一个数字开始，逆序点击到1。</p>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-sm text-dark/60"><i class="fa fa-lightbulb-o mr-2"></i> 锻炼逆向思维和注意力</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="border border-gray-200 rounded-lg overflow-hidden transition-all-300 hover:shadow-lg">
+                    <div class="bg-purple-500 p-4 text-white">
+                        <h4 class="text-xl font-bold">随机模式</h4>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-dark/80 mb-3">系统随机指定数字顺序，按要求点击。</p>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-sm text-dark/60"><i class="fa fa-lightbulb-o mr-2"></i> 提升应变能力和快速反应</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="border border-gray-200 rounded-lg overflow-hidden transition-all-300 hover:shadow-lg">
+                    <div class="bg-teal-500 p-4 text-white">
+                        <h4 class="text-xl font-bold">记忆模式</h4>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-dark/80 mb-3">数字先显示2秒，然后隐藏，你需要凭记忆点击。</p>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-sm text-dark/60"><i class="fa fa-lightbulb-o mr-2"></i> 极大提升短期记忆力</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="border border-gray-200 rounded-lg overflow-hidden transition-all-300 hover:shadow-lg">
+                    <div class="bg-red-500 p-4 text-white">
+                        <h4 class="text-xl font-bold">限时挑战</h4>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-dark/80 mb-3">在限定时间内尽可能点击更多数字。</p>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-sm text-dark/60"><i class="fa fa-lightbulb-o mr-2"></i> 增强压力下的注意力</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+
+    <div id="share-modal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-primary">分享成绩</h3>
+                <button id="close-share-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="text-center mb-6">
+                <p class="text-dark/80 mb-2">你在</p>
+                <p id="share-difficulty" class="text-2xl font-bold text-primary mb-1">难度1</p>
+                <p id="share-mode" class="text-lg text-dark/80 mb-4">经典模式</p>
+                <p class="text-dark/80 mb-2">中的成绩是</p>
+                <p id="share-time" class="text-4xl font-bold text-primary mb-6">00:15.24</p>
+                <div class="flex justify-center space-x-4">
+                    <button class="bg-blue-500 text-white p-3 rounded-full btn-hover">
+                        <i class="fa fa-facebook"></i>
+                    </button>
+                    <button class="bg-sky-500 text-white p-3 rounded-full btn-hover">
+                        <i class="fa fa-twitter"></i>
+                    </button>
+                    <button class="bg-green-500 text-white p-3 rounded-full btn-hover">
+                        <i class="fa fa-whatsapp"></i>
+                    </button>
+                    <button class="bg-gray-800 text-white p-3 rounded-full btn-hover">
+                        <i class="fa fa-link"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        const gameConfig = {
+            difficulty: 1,
+            gridSize: 5,
+            totalNumbers: 25,
+            mode: 'classic',
+            isPlaying: false,
+            startTime: null,
+            timerInterval: null,
+            currentNumber: 1,
+            gameTime: 0,
+            numbers: [],
+            targetNumbers: []
+        };
+
+
+        const gameStats = {
+            totalGames: 0,
+            bestTime: Infinity,
+            totalTime: 0,
+            history: []
+        };
+
+
+        const elements = {
+            grid: document.getElementById('grid'),
+            timer: document.getElementById('timer'),
+            currentNumber: document.getElementById('current-number'),
+            startBtn: document.getElementById('start-btn'),
+            resetBtn: document.getElementById('reset-btn'),
+            shareBtn: document.getElementById('share-btn'),
+            difficultyBtns: document.querySelectorAll('.difficulty-btn'),
+            difficultyDesc: document.getElementById('difficulty-desc'),
+            gameMode: document.getElementById('game-mode'),
+            modeDesc: document.getElementById('mode-desc'),
+            gameMessage: document.getElementById('game-message'),
+            gameOverlay: document.getElementById('game-overlay'),
+            finalTime: document.getElementById('final-time'),
+            playAgainBtn: document.getElementById('play-again-btn'),
+            mobileMenuBtn: document.getElementById('mobile-menu-btn'),
+            mobileMenu: document.getElementById('mobile-menu'),
+            shareModal: document.getElementById('share-modal'),
+            closeShareModal: document.getElementById('close-share-modal'),
+            shareDifficulty: document.getElementById('share-difficulty'),
+            shareMode: document.getElementById('share-mode'),
+            shareTime: document.getElementById('share-time'),
+
+            totalGames: document.getElementById('total-games'),
+            bestTime: document.getElementById('best-time'),
+            avgTime: document.getElementById('avg-time'),
+            historyBody: document.getElementById('history-body')
+        };
+
+
+        function initGame() {
+
+            loadGameStats();
+            updateStatsDisplay();
+
+
+            elements.difficultyBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    setDifficulty(parseInt(e.target.id.split('-')[1]));
+                });
+            });
+
+
+            elements.gameMode.addEventListener('change', (e) => {
+                setGameMode(e.target.value);
+            });
+
+
+            elements.startBtn.addEventListener('click', startGame);
+            elements.resetBtn.addEventListener('click', resetGame);
+            elements.shareBtn.addEventListener('click', showShareModal);
+            elements.playAgainBtn.addEventListener('click', resetGame);
+            elements.closeShareModal.addEventListener('click', hideShareModal);
+
+
+            elements.mobileMenuBtn.addEventListener('click', () => {
+                elements.mobileMenu.classList.toggle('hidden');
+            });
+
+
+            elements.themeToggle.addEventListener('click', toggleTheme);
+
+
+            updateDifficultyDesc();
+            updateModeDesc();
+        }
+
+
+        function setDifficulty(difficulty) {
+            gameConfig.difficulty = difficulty;
+
+
+            elements.difficultyBtns.forEach(btn => {
+                const btnDifficulty = parseInt(btn.id.split('-')[1]);
+                if (btnDifficulty === difficulty) {
+                    btn.classList.add('bg-green-50', 'border-green-200', 'text-green-700', 'active');
+                    btn.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-700');
+                } else {
+                    btn.classList.remove('bg-green-50', 'border-green-200', 'text-green-700', 'active');
+                    btn.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-700');
+                }
+            });
+
+
+            switch (difficulty) {
+                case 1:
+                    gameConfig.gridSize = 5;
+                    gameConfig.totalNumbers = 25;
+                    break;
+                case 2:
+                    gameConfig.gridSize = 6;
+                    gameConfig.totalNumbers = 36;
+                    break;
+                case 3:
+                    gameConfig.gridSize = 7;
+                    gameConfig.totalNumbers = 49;
+                    break;
+            }
+
+            updateDifficultyDesc();
+
+
+            if (gameConfig.isPlaying) {
+                resetGame();
+            }
+        }
+
+
+        function updateDifficultyDesc() {
+            let desc = '';
+            switch (gameConfig.difficulty) {
+                case 1:
+                    desc = '难度1: 5x5方格，适合锻炼基础注意力';
+                    break;
+                case 2:
+                    desc = '难度2: 6x6方格，适合提升注意力和过关速度';
+                    break;
+                case 3:
+                    desc = '难度3: 7x7方格，适合高阶玩家挑战极限';
+                    break;
+            }
+            elements.difficultyDesc.textContent = desc;
+        }
+
+
+        function setGameMode(mode) {
+            gameConfig.mode = mode;
+            updateModeDesc();
+
+
+            if (gameConfig.isPlaying) {
+                resetGame();
+            }
+        }
+
+
+        function updateModeDesc() {
+            let desc = '';
+            switch (gameConfig.mode) {
+                case 'classic':
+                    desc = '经典模式: 按顺序点击从1到N的数字';
+                    break;
+                case 'reverse':
+                    desc = '反向模式: 按逆序点击从N到1的数字';
+                    break;
+                case 'random':
+                    desc = '随机模式: 按系统指定的随机顺序点击数字';
+                    break;
+                case 'memory':
+                    desc = '记忆模式: 数字先显示2秒，然后隐藏，凭记忆点击';
+                    break;
+                case 'time-attack':
+                    desc = '限时挑战: 在限定时间内尽可能点击更多数字';
+                    break;
+            }
+            elements.modeDesc.textContent = desc;
+        }
+
+
+        function startGame() {
+            gameConfig.isPlaying = true;
+            gameConfig.currentNumber = 1;
+            gameConfig.gameTime = 0;
+
+
+            elements.startBtn.disabled = true;
+            elements.resetBtn.disabled = false;
+            elements.shareBtn.disabled = true;
+            elements.currentNumber.textContent = gameConfig.currentNumber;
+
+
+            generateNumbers();
+
+
+            createGrid();
+
+
+            elements.gameMessage.classList.remove('hidden');
+            if (gameConfig.mode === 'classic') {
+                elements.gameMessage.querySelector('p').textContent = '点击数字 1 开始游戏';
+            } else if (gameConfig.mode === 'reverse') {
+                elements.gameMessage.querySelector('p').textContent = '点击数字 ' + gameConfig.totalNumbers + ' 开始游戏';
+                gameConfig.currentNumber = gameConfig.totalNumbers;
+                elements.currentNumber.textContent = gameConfig.currentNumber;
+            } else if (gameConfig.mode === 'random') {
+                elements.gameMessage.querySelector('p').textContent = '点击数字 ' + gameConfig.targetNumbers[0] + ' 开始游戏';
+            } else if (gameConfig.mode === 'memory') {
+                elements.gameMessage.querySelector('p').textContent = `记住数字位置，${gameConfig.difficulty+3}秒后开始游戏`;
+                setTimeout(() => {
+                    document.querySelectorAll('.grid-cell').forEach(cell => {
+                        cell.classList.add('memory-hidden');
+                    });
+                    elements.gameMessage.querySelector('p').textContent = '点击数字 1 开始游戏';
+                    startTimer();
+                }, 1000*(gameConfig.difficulty+3));
+                return;
+            } else if (gameConfig.mode === 'time-attack') {
+                elements.gameMessage.querySelector('p').textContent = '在60秒内点击尽可能多的数字';
+                gameConfig.currentNumber = 0;
+                elements.currentNumber.textContent = '0';
+            }
+
+
+            startTimer();
+        }
+
+
+        function generateNumbers() {
+            gameConfig.numbers = [];
+            gameConfig.targetNumbers = [];
+
+
+            for (let i = 1; i <= gameConfig.totalNumbers; i++) {
+                gameConfig.numbers.push(i);
+            }
+
+
+            gameConfig.numbers.sort(() => Math.random() - 0.5);
+
+
+            if (gameConfig.mode === 'classic') {
+
+                for (let i = 1; i <= gameConfig.totalNumbers; i++) {
+                    gameConfig.targetNumbers.push(i);
+                }
+            } else if (gameConfig.mode === 'reverse') {
+
+                for (let i = gameConfig.totalNumbers; i >= 1; i--) {
+                    gameConfig.targetNumbers.push(i);
+                }
+            } else if (gameConfig.mode === 'random') {
+
+                const temp = [...gameConfig.numbers];
+                gameConfig.targetNumbers = temp.sort(() => Math.random() - 0.5);
+            } else if (gameConfig.mode === 'memory') {
+
+                for (let i = 1; i <= gameConfig.totalNumbers; i++) {
+                    gameConfig.targetNumbers.push(i);
+                }
+            } else if (gameConfig.mode === 'time-attack') {
+
+                const temp = [...gameConfig.numbers];
+                gameConfig.targetNumbers = temp.sort(() => Math.random() - 0.5);
+            }
+        }
+
+
+        function createGrid() {
+
+            elements.grid.innerHTML = '';
+
+
+            elements.grid.style.gridTemplateColumns = `repeat(${gameConfig.gridSize}, 1fr)`;
+
+
+            for (let i = 0; i < gameConfig.totalNumbers; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell bg-white border border-gray-200 rounded-lg flex items-center justify-center font-bold text-2xl cursor-pointer transition-all hover:bg-gray-50 hover:shadow-md active:scale-95';
+                cell.dataset.number = gameConfig.numbers[i];
+                cell.textContent = gameConfig.numbers[i];
+
+
+                if (gameConfig.mode === 'memory') {
+                    cell.classList.add('memory-visible');
+                }
+
+
+                cell.addEventListener('click', () => handleCellClick(cell));
+
+                elements.grid.appendChild(cell);
+            }
+        }
+
+
+        function handleCellClick(cell) {
+            if (!gameConfig.isPlaying) return;
+
+            const number = parseInt(cell.dataset.number);
+
+
+            let targetNumber;
+            if (gameConfig.mode === 'classic' || gameConfig.mode === 'memory') {
+                targetNumber = gameConfig.currentNumber;
+            } else if (gameConfig.mode === 'reverse') {
+                targetNumber = gameConfig.currentNumber;
+            } else if (gameConfig.mode === 'random') {
+                targetNumber = gameConfig.targetNumbers[gameConfig.currentNumber - 1];
+            } else if (gameConfig.mode === 'time-attack') {
+                targetNumber = gameConfig.targetNumbers[gameConfig.currentNumber];
+            }
+
+
+            if (number === targetNumber) {
+
+                cell.classList.add('bg-green-100', 'border-green-300', 'text-green-700');
+                cell.classList.remove('hover:bg-gray-50');
+                cell.style.pointerEvents = 'none';
+
+
+                if (gameConfig.mode === 'memory') {
+                    cell.classList.remove('memory-hidden');
+                }
+
+
+                if (gameConfig.mode === 'time-attack') {
+                    gameConfig.currentNumber++;
+                    elements.currentNumber.textContent = gameConfig.currentNumber;
+
+
+                    if (gameConfig.currentNumber === gameConfig.totalNumbers) {
+                        endGame();
+                    }
+                } else if (gameConfig.mode === 'reverse') {
+                    gameConfig.currentNumber--;
+                    elements.currentNumber.textContent = gameConfig.currentNumber;
+
+
+                    if (gameConfig.currentNumber === 0) {
+                        endGame();
+                    }
+                } else {
+                    gameConfig.currentNumber++;
+                    elements.currentNumber.textContent = gameConfig.currentNumber;
+
+
+                    if (gameConfig.currentNumber > gameConfig.totalNumbers) {
+                        endGame();
+                    }
+                }
+
+
+                if (gameConfig.mode === 'random' && gameConfig.currentNumber <= gameConfig.totalNumbers) {
+                    elements.gameMessage.querySelector('p').textContent = '点击数字 ' + gameConfig.targetNumbers[gameConfig.currentNumber - 1] + '';
+                }
+            } else {
+
+                cell.classList.add('bg-red-100', 'border-red-300', 'text-red-700');
+
+
+                setTimeout(() => {
+                    if (!cell.classList.contains('bg-green-100')) {
+                        cell.classList.remove('bg-red-100', 'border-red-300', 'text-red-700');
+                    }
+                }, 500);
+            }
+        }
+
+
+        function startTimer() {
+            gameConfig.startTime = new Date().getTime();
+
+            gameConfig.timerInterval = setInterval(() => {
+                const now = new Date().getTime();
+                gameConfig.gameTime = now - gameConfig.startTime;
+
+
+                elements.timer.textContent = formatTime(gameConfig.gameTime);
+
+
+                if (gameConfig.mode === 'time-attack' && gameConfig.gameTime >= 60000) {
+                    endGame();
+                }
+            }, 10);
+        }
+
+
+        function formatTime(ms) {
+            const minutes = Math.floor(ms / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+            const centiseconds = Math.floor((ms % 1000) / 10);
+
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`;
+        }
+
+
+        function endGame() {
+            clearInterval(gameConfig.timerInterval);
+            gameConfig.isPlaying = false;
+
+
+            elements.startBtn.disabled = false;
+            elements.resetBtn.disabled = true;
+            elements.shareBtn.disabled = false;
+
+
+            elements.gameMessage.classList.add('hidden');
+
+
+            elements.finalTime.textContent = formatTime(gameConfig.gameTime);
+            elements.gameOverlay.classList.remove('hidden');
+
+
+            updateGameStats();
+            updateStatsDisplay();
+        }
+
+
+        function resetGame() {
+            clearInterval(gameConfig.timerInterval);
+            gameConfig.isPlaying = false;
+
+
+            elements.startBtn.disabled = false;
+            elements.resetBtn.disabled = true;
+            elements.shareBtn.disabled = true;
+            elements.timer.textContent = '00:00.00';
+            elements.currentNumber.textContent = '1';
+
+
+            elements.grid.innerHTML = '';
+
+
+            elements.gameMessage.classList.add('hidden');
+            elements.gameOverlay.classList.add('hidden');
+        }
+
+
+        function showShareModal() {
+
+            let difficultyName = '';
+            switch (gameConfig.difficulty) {
+                case 1:
+                    difficultyName = '难度1';
+                    break;
+                case 2:
+                    difficultyName = '难度2';
+                    break;
+                case 3:
+                    difficultyName = '难度3';
+                    break;
+            }
+
+            let modeName = '';
+            switch (gameConfig.mode) {
+                case 'classic':
+                    modeName = '经典模式';
+                    break;
+                case 'reverse':
+                    modeName = '反向模式';
+                    break;
+                case 'random':
+                    modeName = '随机模式';
+                    break;
+                case 'memory':
+                    modeName = '记忆模式';
+                    break;
+                case 'time-attack':
+                    modeName = '限时挑战';
+                    break;
+            }
+
+            elements.shareDifficulty.textContent = difficultyName;
+            elements.shareMode.textContent = modeName;
+            elements.shareTime.textContent = formatTime(gameConfig.gameTime);
+
+
+            elements.shareModal.classList.remove('hidden');
+        }
+
+
+        function hideShareModal() {
+            elements.shareModal.classList.add('hidden');
+        }
+
+
+        function updateGameStats() {
+
+            if (gameConfig.mode === 'time-attack') return;
+
+            gameStats.totalGames++;
+            gameStats.totalTime += gameConfig.gameTime;
+
+
+            if (gameConfig.gameTime < gameStats.bestTime) {
+                gameStats.bestTime = gameConfig.gameTime;
+            }
+
+
+            const difficultyName = `难度${gameConfig.difficulty}`;
+            let modeName = '';
+            switch (gameConfig.mode) {
+                case 'classic':
+                    modeName = '经典模式';
+                    break;
+                case 'reverse':
+                    modeName = '反向模式';
+                    break;
+                case 'random':
+                    modeName = '随机模式';
+                    break;
+                case 'memory':
+                    modeName = '记忆模式';
+                    break;
+            }
+
+            gameStats.history.push({
+                date: new Date().toLocaleString(),
+                difficulty: difficultyName,
+                mode: modeName,
+                time: formatTime(gameConfig.gameTime)
+            });
+
+
+            if (gameStats.history.length > 10) {
+                gameStats.history.shift();
+            }
+
+
+            saveGameStats();
+        }
+
+
+        function saveGameStats() {
+            localStorage.setItem('schulteGameStats', JSON.stringify(gameStats));
+        }
+
+
+        function loadGameStats() {
+            const savedStats = localStorage.getItem('schulteGameStats');
+            if (savedStats) {
+                Object.assign(gameStats, JSON.parse(savedStats));
+            }
+        }
+
+
+        function updateStatsDisplay() {
+            elements.totalGames.textContent = gameStats.totalGames;
+
+            if (gameStats.bestTime === Infinity) {
+                elements.bestTime.textContent = '--:--.--';
+            } else {
+                elements.bestTime.textContent = formatTime(gameStats.bestTime);
+            }
+
+            if (gameStats.totalGames > 0) {
+                const avgTime = gameStats.totalTime / gameStats.totalGames;
+                elements.avgTime.textContent = formatTime(avgTime);
+            } else {
+                elements.avgTime.textContent = '--:--.--';
+            }
+
+
+            if (gameStats.history.length > 0) {
+                elements.historyBody.innerHTML = '';
+                gameStats.history.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">${record.date}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${record.difficulty}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${record.mode}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${record.time}</td>
+                    `;
+                    elements.historyBody.appendChild(row);
+                });
+            } else {
+                elements.historyBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">暂无游戏记录</td>
+                    </tr>
+                `;
+            }
+        }
+
+
+        function toggleTheme() {
+            const themeIcon = elements.themeToggle.querySelector('i');
+            if (themeIcon.classList.contains('fa-moon-o')) {
+                themeIcon.classList.remove('fa-moon-o');
+                themeIcon.classList.add('fa-sun-o');
+                document.body.classList.add('dark-theme');
+            } else {
+                themeIcon.classList.remove('fa-sun-o');
+                themeIcon.classList.add('fa-moon-o');
+                document.body.classList.remove('dark-theme');
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+
+</html>

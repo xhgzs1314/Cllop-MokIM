@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>PPU协议</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f0f4fa;
+            font-family: 'Segoe UI', 'Roboto', 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.55;
+            color: #1a2c3e;
+            padding: 40px 24px;
+        }
+
+        .legal-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .legal-header {
+            background: linear-gradient(115deg, #102b3f 0%, #1b4a6e 100%);
+            padding: 32px 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .legal-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            color: #ffffff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .legal-header h1::before {
+            content: "🏛️";
+            font-size: 30px;
+            font-weight: normal;
+            opacity: 0.95;
+        }
+
+        .legal-sub {
+            font-size: 15px;
+            color: #c7e0f5;
+            opacity: 0.9;
+            font-weight: 400;
+            margin-top: 6px;
+            border-left: 3px solid #5f9fd6;
+            padding-left: 14px;
+        }
+
+        .legal-content {
+            padding: 36px 40px 48px;
+        }
+
+        .policy-section {
+            margin-bottom: 42px;
+            border-bottom: 1px solid #e9f0f5;
+            padding-bottom: 32px;
+        }
+
+        .policy-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0e3b58;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.3px;
+            border-left: 5px solid #2c7cb6;
+            padding-left: 18px;
+        }
+
+        .notice-content {
+            font-size: 15px;
+            color: #2c3f4f;
+            margin-bottom: 18px;
+            line-height: 1.65;
+            text-align: justify;
+        }
+
+        .notice-content strong {
+            color: #166c9e;
+            font-weight: 700;
+        }
+
+        .ppu-card {
+            background: #eef5fc;
+            border-radius: 20px;
+            padding: 20px 28px;
+            margin: 20px 0 12px;
+            border-left: 6px solid #2c7cb6;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .ppu-card .ppu-title {
+            font-weight: 800;
+            font-size: 16px;
+            color: #0a496e;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .core-list {
+            margin-top: 8px;
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .core-list li {
+            margin-bottom: 12px;
+            padding-left: 28px;
+            position: relative;
+            font-size: 14.5px;
+            line-height: 1.5;
+            color: #1e4b6e;
+        }
+
+        .core-list li::before {
+            content: "▹";
+            position: absolute;
+            left: 8px;
+            color: #2c7cb6;
+            font-weight: bold;
+        }
+
+        .legal-note {
+            background: #f8fafd;
+            border-radius: 18px;
+            padding: 18px 24px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #2c5a7a;
+            border: 1px solid #e2edf6;
+        }
+
+        .contact-block {
+            background: #f0f6fe;
+            border-radius: 22px;
+            padding: 22px 28px;
+            margin-top: 36px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid #dde9f2;
+        }
+
+        .contact-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1f5475;
+        }
+
+        .contact-text span {
+            font-weight: 700;
+            color: #0f5883;
+        }
+
+        .contact-badge {
+            background: white;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1f6a93;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            border: 1px solid #cde0ed;
+        }
+
+        .footer-note {
+            margin-top: 40px;
+            padding-top: 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #6f90ae;
+            border-top: 1px solid #eef2f8;
+        }
+
+        @media (max-width: 720px) {
+            body {
+                padding: 20px 16px;
+            }
+            .legal-header {
+                padding: 24px 24px;
+            }
+            .legal-header h1 {
+                font-size: 22px;
+            }
+            .legal-content {
+                padding: 28px 24px 36px;
+            }
+            .section-title {
+                font-size: 18px;
+            }
+            .contact-block {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .ppu-card {
+                padding: 16px 20px;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #eef2f8;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #bbd4ed;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #90b5d4;
+        }
+        .badge-ppu {
+            background: #1c6c9e20;
+            border-radius: 30px;
+            display: inline-block;
+            padding: 2px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #146b9e;
+            margin-left: 12px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+<div class="legal-container">
+    <div class="legal-header">
+        <h1>PPU 架构协议 <span style="font-size: 18px; background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 40px;">群聊创建前置条款</span></h1>
+        <div class="legal-sub">PPU (Private-Public Unison) · 群聊半私密设计规范 | 生效日期：2026年3月</div>
+    </div>
+    <div class="legal-content">
+      
+        <div class="policy-section">
+            <div class="section-title">
+                📜 PPU 核心契约 · 群聊创建者与成员共同遵守
+                <span class="badge-ppu">创建群聊即视为同意</span>
+            </div>
+            <div class="notice-content">
+                我们（本平台运营方）提供基于 <strong>“PPU Architecture”（半私密混合架构）</strong> 的群聊服务。任何用户若希望创建群聊，必须在创建流程中完整阅读本协议并主动勾选“我已阅读并同意PPU协议”。本协议为平台服务条款的补充特别约定，与主服务条款具有同等法律效力。若您不同意本协议的任何内容，请勿创建群聊，可选择仅加入他人群组或使用私聊功能。
+            </div>
+
+    
+            <div class="ppu-card">
+                <div class="ppu-title">
+                    🔒 PPU 架构三大核心规则
+                </div>
+                <ul class="core-list">
+                    <li><strong>1. 群聊半私密管理限制：</strong> 群聊创建者及群聊管理成员（包含管理员）<strong>无法查看详细的群成员信息列表</strong>（例如无法直接获取全体成员的详细资料、个人主页等聚合视图）。同时，管理成员<strong>不得执行“直接踢出”或“一键禁言”等常规操作</strong>。针对违规行为，管理方仅能通过“成员投诉+系统风控表决”机制或申请官方审查介入处理，确保成员权益不被单一管理者滥用。</li>
+                    <li><strong>2. 群员间隔离通信机制：</strong> 为保障群聊内部隐私边界，群员之间<strong>无法直接进行私密通信</strong>，包括无法通过群内点击头像查看对方个人主页、无法通过群聊获取对方用户ID或直接发起添加好友申请。任何跨成员的社交互动需经过双向公开频道或第三方引荐授权，从架构层面阻止群聊内非必要骚扰行为。</li>
+                    <li><strong>3. 群日志分层公开原则：</strong> 群聊内产生的关键操作日志（包括入群记录、管理动作、系统通知、发言概要记录）<strong>对所有成员公开可查</strong>，保障透明化治理。但涉及个人敏感隐私信息（如部分脱敏前的设备指纹、精确登录IP尾段、真实手机号等）仅对平台合规审计部门及成员本人可见，普通成员无法接触到隐私维度元数据，实现“公开透明与隐私保护”平衡。</li>
+                </ul>
+                <div class="legal-note" style="margin-top: 12px; background: #ffffffcc;">
+                    💡 补充说明：PPU设计初衷在于构建“抗滥用、防窥探、可审计”的下一代社群环境。任何群聊的创建及使用均受上述规则约束。
+                </div>
+            </div>
+
+            <div class="notice-content">
+                <strong>创建群聊额外义务：</strong> 作为群聊创建者，您需确保群组主题、名称及简介不违反法律法规，并充分向潜在成员告知本PPU架构的特殊规则（包括管理权限受限、成员间不可私联等）。若因创建者未尽到告知义务导致群成员产生误解或纠纷，创建者应承担相应沟通协调责任，我们保留对恶意创建违规群组进行限制或解散的权利。
+            </div>
+        </div>
+
+     
+        <div class="policy-section">
+            <div class="section-title">二、平台通用服务条款</div>
+            <div class="notice-content">
+                我们为企业级与个人用户提供稳定即时通讯基础服务。凡使用本平台（包括群聊与私聊）均代表您同意遵守中华人民共和国的相关法律法规，严禁利用平台发布违法不良信息、进行网络诈骗、传播计算机病毒或任何破坏网络生态的行为。用户自主创建群聊即承诺群组整体行为符合平台规范。
+            </div>
+            <div class="notice-content">
+                针对PPU群聊架构，我们额外设置“社群风控积分”机制。若群组出现系统性违规（如多人举报且日志审计属实），平台有权根据严重程度对群聊采取限制邀请、暂停消息、降级为只读模式或强制解散等处置措施。管理成员虽无法直接踢人，但可通过“发起社群表决”功能将违规成员交由系统自动裁决（需超过60%群成员投票支持）。以上机制确保社群共治。
+            </div>
+            <div class="notice-content">
+                用户在本平台发布的文字、图片、文件等内容，我们仅提供传输通道与存储空间，用户需对内容合法性自行负责。如因群聊内内容引发第三方索赔或行政处罚，由内容发布者及群创建者（若未尽到监督提醒义务）承担相应法律责任，我们在合法范围内可配合有权机关提供日志记录。
+            </div>
+        </div>
+
+      
+        <div class="policy-section">
+            <div class="section-title">三、隐私保护与PPU数据使用声明</div>
+            <div class="notice-content">
+                <strong>信息收集最小化：</strong> 我们基于PPU架构运行需要，仅收集群聊必要的信息（群名称、群公告、成员加入时间、群内发言记录、系统日志）。由于管理成员无法查看群成员详细列表及个人信息，群内成员的昵称/头像在群聊界面以匿名化编码方式展示（用户可自定义对外昵称，且不会泄露用户唯一ID）。
+            </div>
+            <div class="notice-content">
+                <strong>隐私强化隔离：</strong> 群聊成员之间无法通过群组入口访问对方个人主页、无法看到对方的在线状态或好友关系，杜绝通过群聊进行数据抓取或骚扰。我们默认开启全链路加密传输（TLS 1.3），服务器存储的聊天记录采用分层密钥加密，除非司法机关依法调取，否则平台内部亦严格遵守最小知悉原则。
+            </div>
+            <div class="notice-content">
+                <strong>群日志的隐私边界：</strong> 群日志对所有成员公开的范围仅限于“成员加入/退出行为”“管理投票记录”“系统通知”“消息计数摘要”等操作性数据，不包含具体聊天内容或隐私字段（例如成员真实手机号、精确地理位置）。涉及敏感操作时，日志将自动脱敏展示（如IP地址仅显示省份，完整设备信息仅保留风控审计）。用户可随时查阅群日志，如有异议可发起申诉。
+            </div>
+            <div class="notice-content">
+                <strong>用户权利及数据删除：</strong> 您有权注销个人账号或申请退出任意群聊，退出后平台将不再保留您在群内的个人身份关联信息（群聊历史消息将做匿名化处理，保留公共日志但移除身份标识）。如您希望彻底删除群聊中自己发布的消息，可依据《个人信息保护法》行使删除权，我们将在验证身份后15个工作日内处理。
+            </div>
+        </div>
+
+        
+        <div class="policy-section">
+            <div class="section-title">四、PPU架构免责声明及责任限制</div>
+            <div class="notice-content">
+                由于PPU架构限制了管理成员的直接管控能力（无法踢人/直接禁言），任何群聊内的争议、言语冲突或信息泄露风险，原则上由行为责任人自行承担。我们将持续优化社群共治工具（如表决机制、智能风控），但不对用户之间的争议结果承担担保责任。若因不可抗力、黑客攻击、网络中断导致群聊功能异常，我们在法律允许范围内免除赔偿责任。
+            </div>
+            <div class="notice-content">
+                我们特别提醒：<strong>群聊管理成员无法查看详细成员列表，也无法执行强制踢人/禁言操作，</strong> 因此群聊创建者在邀请成员时应当充分告知此规则，确保每位成员理解群内秩序依赖于自律和集体表决。如果成员因不了解PPU规则而产生预期之外的困扰，我们建议其仔细阅读本协议或联系客服获取帮助。
+            </div>
+            <div class="notice-content">
+                对于群日志公开内容，我们仅保证其真实性及不可篡改性（基于区块链存证技术），但不对成员基于公开日志解读所产生的任何纠纷承担法律责任。所有用户承诺在使用本平台时，已充分知悉PPU架构带来的交互模式变化，自愿承担相应社群参与风险。
+            </div>
+        </div>
+
+      
+        <div class="policy-section">
+            <div class="section-title">五、协议更新与创建群聊前置同意</div>
+            <div class="notice-content">
+                我们可能根据法律法规或产品迭代适时修订本PPU协议，修订版本将在平台公告或创建群聊界面显著提示。若您继续保留群聊或新建群组，则视为接受修订后的条款。如对重大变更存在异议，您应主动解散群聊或停止使用相关功能。
+            </div>
+            <div class="notice-content">
+                <strong>【创建群聊前强制阅读确认】</strong> 在您点击“创建群聊”按钮后，系统将弹出PPU协议全文并需要滑动至底部手动勾选“我已完整阅读并同意遵守PPU架构协议，理解群聊管理权限与隐私隔离机制”。若未勾选同意，将无法成功创建任何群组。该确认记录会保存在后台审计日志中，作为协议生效凭证。
+            </div>
+            <div class="legal-note">
+                ⚖️ 重要法律提示：PPU架构通过设计保障成员隐私与社群透明，但任何技术方案均不能完全杜绝违规行为。请用户文明发言，尊重他人。如您发现群聊中存在严重违法内容，可通过官方举报渠道反映，我们将在24小时内响应。
+            </div>
+        </div>
+
+        
+       
+
+        <div class="footer-note">
+            © 2026 PPU Architecture 平台 | 本协议自创建群聊前确认时即时生效，最终解释权归平台所有。<br>
+            版本号：PPU-2.6
+        </div>
+    </div>
+</div>
+</body>
+</html>

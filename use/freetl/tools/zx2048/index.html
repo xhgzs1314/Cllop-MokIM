@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 游戏</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background: #faf8ef;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 48px;
+            color: #776e65;
+            margin: 20px 0;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .score-box {
+            background: #bbada0;
+            padding: 10px 20px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .game-container {
+            position: relative;
+            background: #bbada0;
+            border-radius: 10px;
+            width: 500px;
+            height: 500px;
+            margin: 0 auto;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        
+        .grid-container {
+            position: absolute;
+            z-index: 1;
+            width: 470px;
+            height: 470px;
+        }
+        
+        .grid-row {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .grid-cell {
+            width: 107px;
+            height: 107px;
+            background: rgba(238, 228, 218, 0.35);
+            border-radius: 3px;
+        }
+        
+        .tile-container {
+            position: absolute;
+            z-index: 2;
+            width: 470px;
+            height: 470px;
+        }
+        
+        .tile {
+            position: absolute;
+            width: 107px;
+            height: 107px;
+            background: #eee4da;
+            border-radius: 3px;
+            font-size: 55px;
+            font-weight: bold;
+            line-height: 107px;
+            text-align: center;
+            transition: all 0.15s ease-in-out;
+        }
+        
+        .tile-2 { background: #eee4da; color: #776e65; }
+        .tile-4 { background: #ede0c8; color: #776e65; }
+        .tile-8 { background: #f2b179; color: #f9f6f2; }
+        .tile-16 { background: #f59563; color: #f9f6f2; }
+        .tile-32 { background: #f67c5f; color: #f9f6f2; }
+        .tile-64 { background: #f65e3b; color: #f9f6f2; }
+        .tile-128 { background: #edcf72; color: #f9f6f2; font-size: 45px; }
+        .tile-256 { background: #edcc61; color: #f9f6f2; font-size: 45px; }
+        .tile-512 { background: #edc850; color: #f9f6f2; font-size: 45px; }
+        .tile-1024 { background: #edc53f; color: #f9f6f2; font-size: 35px; }
+        .tile-2048 { background: #edc22e; color: #f9f6f2; font-size: 35px; }
+        
+        .restart-button {
+            display: inline-block;
+            background: #8f7a66;
+            border-radius: 3px;
+            padding: 10px 20px;
+            color: #f9f6f2;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        
+        .game-message {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(238, 228, 218, 0.73);
+            z-index: 100;
+            text-align: center;
+            border-radius: 10px;
+        }
+        
+        .game-message p {
+            font-size: 60px;
+            font-weight: bold;
+            height: 60px;
+            line-height: 60px;
+            margin-top: 150px;
+        }
+        
+        .game-message .lower {
+            display: block;
+            margin-top: 59px;
+            font-size: 20px;
+        }
+        ::-webkit-scrollbar{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>在线2048</h1>
+        
+        <div class="score-container">
+            <div class="score-box">得分: <span id="score">0</span></div>
+            <div class="score-box">最高分: <span id="best-score">0</span></div>
+        </div>
+        
+        <div class="game-container">
+            <div class="grid-container">
+                <div class="grid-row">
+                    <div class="grid-cell"></div>
+                    <div class="grid-cell"></div>
+                    <div class="grid-cell"></div>
+                    <div class="grid-cell"></div>
+                </div>
+                <div class="grid-row">
+                    <div class="grid-cell"></div>
+                    <div class="grid-cell"></div>
+                    <div class="grid-cell"></div>
+                    <div class="grid-cell"></div>
+                </div>
+                <div class="grid-row">
+                    <div class="grid-cell"></div>
+                    <div class="grid-cell"></div>
+                    <div class="grid-cell"></div>
+                    <div class="grid-cell"></div>
+                </div>
+                <div class="grid-row">
+                    <div class="grid-cell"></div>
+                    <div class="grid-cell"></div>
+                    <div class="grid-cell"></div>
+                    <div class="grid-cell"></div>
+                </div>
+            </div>
+            
+            <div class="tile-container" id="tile-container"></div>
+            
+            <div class="game-message" id="game-message">
+                <p></p>
+                <div class="lower">
+                    <a class="restart-button" onclick="game.restart()">再试一次</a>
+                </div>
+            </div>
+        </div>
+        
+        <a class="restart-button" onclick="game.restart()">重新开始</a>
+    </div>
+
+    <script>
+        class Game2048 {
+            constructor() {
+                this.grid = [];
+                this.score = 0;
+                this.bestScore = localStorage.getItem('bestScore') || 0;
+                this.size = 4;
+                this.tileContainer = document.getElementById('tile-container');
+                this.scoreElement = document.getElementById('score');
+                this.bestScoreElement = document.getElementById('best-score');
+                this.gameMessage = document.getElementById('game-message');
+                
+                this.bestScoreElement.textContent = this.bestScore;
+                
+                this.init();
+                this.setupInput();
+            }
+            
+            init() {
+                this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
+                this.score = 0;
+                this.updateScore();
+                this.addRandomTile();
+                this.addRandomTile();
+                this.updateDisplay();
+                this.gameMessage.style.display = 'none';
+            }
+            
+            restart() {
+                this.tileContainer.innerHTML = '';
+                this.init();
+            }
+            
+            addRandomTile() {
+                const emptyCells = [];
+                for (let row = 0; row < this.size; row++) {
+                    for (let col = 0; col < this.size; col++) {
+                        if (this.grid[row][col] === 0) {
+                            emptyCells.push({ row, col });
+                        }
+                    }
+                }
+                
+                if (emptyCells.length > 0) {
+                    const { row, col } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                    this.grid[row][col] = Math.random() < 0.9 ? 2 : 4;
+                }
+            }
+            
+            updateDisplay() {
+                this.tileContainer.innerHTML = '';
+                
+                for (let row = 0; row < this.size; row++) {
+                    for (let col = 0; col < this.size; col++) {
+                        if (this.grid[row][col] !== 0) {
+                            const tile = document.createElement('div');
+                            tile.className = `tile tile-${this.grid[row][col]}`;
+                            tile.textContent = this.grid[row][col];
+                            tile.style.left = `${col * 122}px`;
+                            tile.style.top = `${row * 122}px`;
+                            this.tileContainer.appendChild(tile);
+                        }
+                    }
+                }
+            }
+            
+            updateScore() {
+                this.scoreElement.textContent = this.score;
+                if (this.score > this.bestScore) {
+                    this.bestScore = this.score;
+                    this.bestScoreElement.textContent = this.bestScore;
+                    localStorage.setItem('bestScore', this.bestScore);
+                }
+            }
+            
+            setupInput() {
+                document.addEventListener('keydown', (e) => {
+                    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                        e.preventDefault();
+                        this.handleInput(e.code);
+                    }
+                });
+                
+           
+                let startX, startY;
+                const gameContainer = document.querySelector('.game-container');
+                
+                gameContainer.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 1) return;
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    e.preventDefault();
+                });
+                
+                gameContainer.addEventListener('touchend', (e) => {
+                    if (!startX || !startY) return;
+                    
+                    const endX = e.changedTouches[0].clientX;
+                    const endY = e.changedTouches[0].clientY;
+                    
+                    const dx = endX - startX;
+                    const dy = endY - startY;
+                    
+                    if (Math.abs(dx) > Math.abs(dy)) {
+                        if (dx > 30) {
+                            this.handleInput('ArrowRight');
+                        } else if (dx < -30) {
+                            this.handleInput('ArrowLeft');
+                        }
+                    } else {
+                        if (dy > 30) {
+                            this.handleInput('ArrowDown');
+                        } else if (dy < -30) {
+                            this.handleInput('ArrowUp');
+                        }
+                    }
+                    
+                    startX = null;
+                    startY = null;
+                    e.preventDefault();
+                });
+            }
+            
+            handleInput(direction) {
+                let moved = false;
+                const previousGrid = JSON.parse(JSON.stringify(this.grid));
+                
+                switch (direction) {
+                    case 'ArrowUp':
+                        moved = this.moveUp();
+                        break;
+                    case 'ArrowDown':
+                        moved = this.moveDown();
+                        break;
+                    case 'ArrowLeft':
+                        moved = this.moveLeft();
+                        break;
+                    case 'ArrowRight':
+                        moved = this.moveRight();
+                        break;
+                }
+                
+                if (moved) {
+                    this.addRandomTile();
+                    this.updateDisplay();
+                    
+                    if (this.checkWin()) {
+                        this.showMessage('你赢了！');
+                    } else if (this.checkGameOver()) {
+                        this.showMessage('游戏结束！');
+                    }
+                }
+            }
+            
+            moveLeft() {
+                let moved = false;
+                
+                for (let row = 0; row < this.size; row++) {
+                    const original = [...this.grid[row]];
+                    const filtered = this.grid[row].filter(val => val !== 0);
+                    const merged = this.mergeTiles(filtered);
+                    const newRow = merged.concat(Array(this.size - merged.length).fill(0));
+                    
+                    this.grid[row] = newRow;
+                    
+                    if (JSON.stringify(original) !== JSON.stringify(newRow)) {
+                        moved = true;
+                    }
+                }
+                
+                return moved;
+            }
+            
+            moveRight() {
+                let moved = false;
+                
+                for (let row = 0; row < this.size; row++) {
+                    const original = [...this.grid[row]];
+                    const filtered = this.grid[row].filter(val => val !== 0);
+                    const merged = this.mergeTiles(filtered.reverse()).reverse();
+                    const newRow = Array(this.size - merged.length).fill(0).concat(merged);
+                    
+                    this.grid[row] = newRow;
+                    
+                    if (JSON.stringify(original) !== JSON.stringify(newRow)) {
+                        moved = true;
+                    }
+                }
+                
+                return moved;
+            }
+            
+            moveUp() {
+                let moved = false;
+                
+                for (let col = 0; col < this.size; col++) {
+                    const column = [];
+                    for (let row = 0; row < this.size; row++) {
+                        column.push(this.grid[row][col]);
+                    }
+                    
+                    const original = [...column];
+                    const filtered = column.filter(val => val !== 0);
+                    const merged = this.mergeTiles(filtered);
+                    const newColumn = merged.concat(Array(this.size - merged.length).fill(0));
+                    
+                    for (let row = 0; row < this.size; row++) {
+                        this.grid[row][col] = newColumn[row];
+                    }
+                    
+                    if (JSON.stringify(original) !== JSON.stringify(newColumn)) {
+                        moved = true;
+                    }
+                }
+                
+                return moved;
+            }
+            
+            moveDown() {
+                let moved = false;
+                
+                for (let col = 0; col < this.size; col++) {
+                    const column = [];
+                    for (let row = 0; row < this.size; row++) {
+                        column.push(this.grid[row][col]);
+                    }
+                    
+                    const original = [...column];
+                    const filtered = column.filter(val => val !== 0);
+                    const merged = this.mergeTiles(filtered.reverse()).reverse();
+                    const newColumn = Array(this.size - merged.length).fill(0).concat(merged);
+                    
+                    for (let row = 0; row < this.size; row++) {
+                        this.grid[row][col] = newColumn[row];
+                    }
+                    
+                    if (JSON.stringify(original) !== JSON.stringify(newColumn)) {
+                        moved = true;
+                    }
+                }
+                
+                return moved;
+            }
+            
+            mergeTiles(tiles) {
+                const result = [];
+                
+                for (let i = 0; i < tiles.length; i++) {
+                    if (i < tiles.length - 1 && tiles[i] === tiles[i + 1]) {
+                        const merged = tiles[i] * 2;
+                        result.push(merged);
+                        this.score += merged;
+                        this.updateScore();
+                        i++;
+                    } else {
+                        result.push(tiles[i]);
+                    }
+                }
+                
+                return result;
+            }
+            
+            checkWin() {
+                for (let row = 0; row < this.size; row++) {
+                    for (let col = 0; col < this.size; col++) {
+                        if (this.grid[row][col] === 2048) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+            
+            checkGameOver() {
+                for (let row = 0; row < this.size; row++) {
+                    for (let col = 0; col < this.size; col++) {
+                        if (this.grid[row][col] === 0) {
+                            return false;
+                        }
+                        
+                        if (col < this.size - 1 && this.grid[row][col] === this.grid[row][col + 1]) {
+                            return false;
+                        }
+                        
+                        if (row < this.size - 1 && this.grid[row][col] === this.grid[row + 1][col]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            
+            showMessage(text) {
+                const message = this.gameMessage.querySelector('p');
+                message.textContent = text;
+                this.gameMessage.style.display = 'block';
+            }
+        }
+        
+        const game = new Game2048();
+    </script>
+</body>
+</html>

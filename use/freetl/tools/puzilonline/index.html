@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线拼图生&游戏</title>
+    <script src="/ast/3.4.17"></script>
+    <link href="/ast/fontawe/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .transition-custom {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .puzzle-piece {
+        position: absolute;
+        background-size: var(--puzzle-size) var(--puzzle-size);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        cursor: grab;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .puzzle-piece:active {
+        cursor: grabbing;
+      }
+      .puzzle-piece:hover:not(.placed) {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10;
+      }
+      .puzzle-piece.placed {
+        cursor: default;
+      }
+      .grid-hover {
+        transition: background-color 0.2s ease;
+      }
+      .grid-hover:hover {
+        background-color: rgba(59, 130, 246, 0.1);
+      }
+      .modal-backdrop {
+        backdrop-filter: blur(4px);
+      }
+      .difficulty-btn.active {
+            background-color: #3B82F6; 
+            color: white; 
+        }
+    }
+  </style>
+    <style>
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 font-sans text-dark min-h-screen flex flex-col">
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-puzzle-piece text-primary text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-dark">拼图生成&Game</h1>
+            </div>
+
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="#features" class="text-gray-600 hover:text-primary transition-custom">功能</a>
+                <a href="#how-it-works" class="text-gray-600 hover:text-primary transition-custom">使用方法</a>
+
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 transition-custom">
+                    <i class="fa fa-moon-o text-gray-600"></i>
+                </button>
+            </nav>
+
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+
+
+        <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-gray-100 shadow-inner">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+                <a href="#features" class="text-gray-600 hover:text-primary py-2 transition-custom">功能</a>
+                <a href="#how-it-works" class="text-gray-600 hover:text-primary py-2 transition-custom">使用方法</a>
+
+                <button id="mobile-theme-toggle" class="p-2 rounded-md hover:bg-gray-100 text-left transition-custom">
+                    <i class="fa fa-moon-o text-gray-600 mr-2"></i>切换主题
+                </button>
+            </div>
+        </div>
+    </header>
+
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+
+        <section class="mb-12 text-center max-w-3xl mx-auto">
+            <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold mb-4 text-dark">创建属于你的拼图游戏</h2>
+            <p class="text-gray-600 text-lg mb-8">上传一张图片，选择难度，开始拼图挑战！完成后还可以分享给好友一起玩。</p>
+
+
+            <div id="upload-container"
+                class="border-2 border-dashed border-gray-300 rounded-xl p-8 mb-8 transition-custom hover:border-primary">
+                <div class="flex flex-col items-center">
+                    <i class="fa fa-cloud-upload text-5xl text-gray-400 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">上传图片</h3>
+                    <p class="text-gray-500 mb-6">点击或拖拽图片到此处 (支持 JPG, PNG, GIF)</p>
+
+                    <label for="image-upload"
+                        class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium transition-custom cursor-pointer">
+                        <i class="fa fa-picture-o mr-2"></i>选择图片
+                    </label>
+                    <input id="image-upload" type="file" accept="image/*" class="hidden" />
+
+                    <div id="uploaded-image-preview" class="hidden mt-6 w-full max-w-md">
+                        <img id="preview-image" src="" alt="上传的图片预览"
+                            class="rounded-lg shadow-lg w-full h-auto object-contain">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="puzzle-section" class="hidden mb-12">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                <div class="lg:col-span-1 bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fa fa-sliders text-primary mr-2"></i>拼图设置
+                    </h3>
+
+                    <div class="space-y-6">
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">选择难度</label>
+                            <div class="grid grid-cols-3 gap-3">
+                                <button
+                                    class="difficulty-btn bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-custom"
+                                    data-rows="2" data-cols="2">
+                                    <i class="fa fa-smile-o mr-1"></i>简单
+                                </button>
+                                <button
+                                    class="difficulty-btn active bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-custom"
+                                    data-rows="3" data-cols="3">
+                                    <i class="fa fa-meh-o mr-1"></i>中等
+                                </button>
+                                <button
+                                    class="difficulty-btn bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-custom"
+                                    data-rows="4" data-cols="4">
+                                    <i class="fa fa-frown-o mr-1"></i>困难
+                                </button>
+                            </div>
+                        </div>
+
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">自定义大小</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm text-gray-500">行数</label>
+                                    <input type="number" id="custom-rows" min="2" max="10" value="3"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                </div>
+                                <div>
+                                    <label class="text-sm text-gray-500">列数</label>
+                                    <input type="number" id="custom-cols" min="2" max="10" value="3"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                </div>
+                            </div>
+                            <button id="custom-size-btn"
+                                class="mt-3 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-custom">
+                                <i class="fa fa-check mr-1"></i>应用自定义大小
+                            </button>
+                        </div>
+
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">游戏控制</label>
+                            <div class="space-y-3">
+                                <button id="start-game"
+                                    class="w-full bg-secondary hover:bg-secondary/90 text-white py-3 px-4 rounded-lg font-medium transition-custom flex items-center justify-center">
+                                    <i class="fa fa-play mr-2"></i>开始游戏
+                                </button>
+                                <button id="reset-game"
+                                    class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-medium transition-custom flex items-center justify-center">
+                                    <i class="fa fa-refresh mr-2"></i>重置游戏
+                                </button>
+                                <button id="show-solution"
+                                    class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-medium transition-custom flex items-center justify-center">
+                                    <i class="fa fa-eye mr-2"></i>显示原图
+                                </button>
+                            </div>
+                        </div>
+
+
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium text-gray-700 mb-3">游戏信息</h4>
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div>
+                                    <span class="text-gray-500">已用时间:</span>
+                                    <p id="time-display" class="font-semibold">00:00</p>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500">移动次数:</span>
+                                    <p id="moves-display" class="font-semibold">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="lg:col-span-2 space-y-8">
+
+                    <div id="original-image-container" class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fa fa-image text-primary mr-2"></i>原图预览
+                        </h3>
+                        <div class="relative overflow-hidden rounded-lg">
+                            <img id="original-image" src="" alt="原图" class="w-full h-auto max-h-64 object-contain">
+                        </div>
+                    </div>
+
+
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fa fa-th text-primary mr-2"></i>拼图游戏
+                        </h3>
+
+                        <div id="puzzle-container" class="relative mx-auto bg-gray-100 rounded-lg overflow-hidden"
+                            style="aspect-ratio: 1/1;">
+
+                            <div id="puzzle-grid" class="absolute inset-0 grid grid-cols-3 gap-0"></div>
+                            <div id="puzzle-pieces" class="absolute inset-0"></div>
+
+
+                            <div id="game-start-prompt"
+                                class="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-20">
+                                <div class="text-center p-8">
+                                    <i class="fa fa-puzzle-piece text-5xl text-primary mb-4"></i>
+                                    <h4 class="text-xl font-bold mb-2">准备好开始了吗？</h4>
+                                    <p class="text-gray-600 mb-4">点击"开始游戏"按钮打乱拼图并开始挑战</p>
+                                    <button id="prompt-start-btn"
+                                        class="bg-secondary hover:bg-secondary/90 text-white px-6 py-3 rounded-lg font-medium transition-custom">
+                                        <i class="fa fa-play mr-2"></i>开始游戏
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="game-complete-prompt"
+                                class="hidden absolute inset-0 flex items-center justify-center bg-primary/90 z-30">
+                                <div class="text-center p-8 bg-white rounded-xl shadow-2xl max-w-md">
+                                    <div
+                                        class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                                        <i class="fa fa-trophy text-3xl text-yellow-500"></i>
+                                    </div>
+                                    <h4 class="text-2xl font-bold mb-2">恭喜你！</h4>
+                                    <p class="text-gray-600 mb-4">你已成功完成拼图挑战</p>
+
+                                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                                        <div class="grid grid-cols-2 gap-3 text-sm">
+                                            <div>
+                                                <span class="text-gray-500">用时:</span>
+                                                <p id="final-time" class="font-semibold text-lg">00:00</p>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">移动次数:</span>
+                                                <p id="final-moves" class="font-semibold text-lg">0</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-col sm:flex-row gap-3">
+                                        <button id="play-again-btn"
+                                            class="flex-1 bg-primary hover:bg-primary/90 text-white px-4 py-3 rounded-lg font-medium transition-custom">
+                                            <i class="fa fa-refresh mr-2"></i>再玩一次
+                                        </button>
+                                        <button id="share-btn"
+                                            class="flex-1 bg-accent hover:bg-accent/90 text-white px-4 py-3 rounded-lg font-medium transition-custom">
+                                            <i class="fa fa-share-alt mr-2"></i>分享
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="features" class="py-12 bg-gray-50 rounded-xl mt-12">
+            <h2 class="text-2xl md:text-3xl font-bold text-center mb-12">主要功能</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 px-6">
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-custom">
+                    <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa fa-upload text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">图片上传</h3>
+                    <p class="text-gray-600">上传自己喜欢的图片，将其转换为拼图游戏。支持各种常见图片格式。</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-custom">
+                    <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa fa-sliders text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">难度选择</h3>
+                    <p class="text-gray-600">从简单的2x2到具有挑战性的10x10，多种难度级别可供选择，满足不同玩家需求。</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-custom">
+                    <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa fa-share-alt text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">分享功能</h3>
+                    <p class="text-gray-600">完成拼图后可以生成分享链接，邀请好友一起挑战你的拼图作品。</p>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="how-it-works" class="py-12">
+            <h2 class="text-2xl md:text-3xl font-bold text-center mb-12">使用方法</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div
+                        class="relative inline-flex items-center justify-center w-16 h-16 bg-primary text-white rounded-full text-2xl font-bold mb-4">
+                        1
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">上传图片</h3>
+                    <p class="text-gray-600">点击上传按钮，选择一张你喜欢的图片</p>
+                </div>
+
+                <div class="text-center">
+                    <div
+                        class="relative inline-flex items-center justify-center w-16 h-16 bg-primary text-white rounded-full text-2xl font-bold mb-4">
+                        2
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">选择难度</h3>
+                    <p class="text-gray-600">根据你的技能水平选择合适的拼图难度</p>
+                </div>
+
+                <div class="text-center">
+                    <div
+                        class="relative inline-flex items-center justify-center w-16 h-16 bg-primary text-white rounded-full text-2xl font-bold mb-4">
+                        3
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">开始游戏</h3>
+                    <p class="text-gray-600">点击开始按钮，开始你的拼图挑战</p>
+                </div>
+
+                <div class="text-center">
+                    <div
+                        class="relative inline-flex items-center justify-center w-16 h-16 bg-primary text-white rounded-full text-2xl font-bold mb-4">
+                        4
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">分享成果</h3>
+                    <p class="text-gray-600">完成后分享给朋友，看看谁能更快完成</p>
+                </div>
+            </div>
+        </section>
+
+
+
+    </main>
+
+
+    <div id="share-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/50 modal-backdrop"></div>
+        <div
+            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">分享拼图</h3>
+                <button id="close-share-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 mb-2">游戏链接</label>
+                <div class="flex">
+                    <input id="share-url" type="text" value=""
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        readonly>
+                    <button id="copy-url"
+                        class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-r-lg transition-custom">
+                        <i class="fa fa-copy mr-1"></i>复制
+                    </button>
+                </div>
+            </div>
+
+
+
+
+
+
+            <div class="flex justify-end">
+                <button id="close-share-btn"
+                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-lg transition-custom">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+       
+        const baseDomain = window.location.host;
+        document.getElementById('share-url').value = baseDomain+'/api/search/?keyword=@puzill';
+        let selectedImage = null;
+        let puzzleRows = 3;
+        let puzzleCols = 3;
+        let puzzlePieces = [];
+        let gameStarted = false;
+        let gameCompleted = false;
+        let moves = 0;
+        let timer = null;
+        let seconds = 0;
+        let isShowingSolution = false;
+        let originalImageData = null;
+        let firstSelectedPiece = null;
+
+
+        const imageUpload = document.getElementById('image-upload');
+        const previewImage = document.getElementById('preview-image');
+        const uploadedImagePreview = document.getElementById('uploaded-image-preview');
+        const puzzleSection = document.getElementById('puzzle-section');
+        const originalImage = document.getElementById('original-image');
+        const puzzleContainer = document.getElementById('puzzle-container');
+        const puzzleGrid = document.getElementById('puzzle-grid');
+        const puzzlePiecesContainer = document.getElementById('puzzle-pieces');
+        const gameStartPrompt = document.getElementById('game-start-prompt');
+        const gameCompletePrompt = document.getElementById('game-complete-prompt');
+        const startGameBtn = document.getElementById('start-game');
+        const promptStartBtn = document.getElementById('prompt-start-btn');
+        const resetGameBtn = document.getElementById('reset-game');
+        const showSolutionBtn = document.getElementById('show-solution');
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+        const customRowsInput = document.getElementById('custom-rows');
+        const customColsInput = document.getElementById('custom-cols');
+        const customSizeBtn = document.getElementById('custom-size-btn');
+        const timeDisplay = document.getElementById('time-display');
+        const movesDisplay = document.getElementById('moves-display');
+        const finalTime = document.getElementById('final-time');
+        const finalMoves = document.getElementById('final-moves');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const shareBtn = document.getElementById('share-btn');
+        const shareModal = document.getElementById('share-modal');
+        const closeShareModal = document.getElementById('close-share-modal');
+        const closeShareBtn = document.getElementById('close-share-btn');
+        const shareUrl = document.getElementById('share-url');
+        const copyUrlBtn = document.getElementById('copy-url');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const themeToggle = document.getElementById('theme-toggle');
+        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+
+
+        imageUpload.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                selectedImage = new Image();
+                selectedImage.onload = function () {
+                    previewImage.src = event.target.result;
+                    originalImage.src = event.target.result;
+                    uploadedImagePreview.classList.remove('hidden');
+                    puzzleSection.classList.remove('hidden');
+
+
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = selectedImage.width;
+                    canvas.height = selectedImage.height;
+                    ctx.drawImage(selectedImage, 0, 0);
+                    originalImageData = canvas.toDataURL('image/jpeg');
+
+
+                    initPuzzle();
+                };
+                selectedImage.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+
+        function initPuzzle() {
+
+            puzzleGrid.innerHTML = '';
+            puzzlePiecesContainer.innerHTML = '';
+            puzzlePieces = [];
+
+
+            const containerSize = Math.min(puzzleContainer.clientWidth, puzzleContainer.clientHeight);
+            puzzleContainer.style.width = `${containerSize}px`;
+            puzzleContainer.style.height = `${containerSize}px`;
+
+
+            puzzleContainer.style.setProperty('--puzzle-size', `${containerSize}px`);
+
+
+            puzzleGrid.style.gridTemplateColumns = `repeat(${puzzleCols}, 1fr)`;
+            puzzleGrid.style.gridTemplateRows = `repeat(${puzzleRows}, 1fr)`;
+
+
+            for (let i = 0; i < puzzleRows; i++) {
+                for (let j = 0; j < puzzleCols; j++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('grid-hover');
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    puzzleGrid.appendChild(cell);
+                }
+            }
+
+
+            const pieceWidth = containerSize / puzzleCols;
+            const pieceHeight = containerSize / puzzleRows;
+
+            for (let i = 0; i < puzzleRows; i++) {
+                for (let j = 0; j < puzzleCols; j++) {
+                    const piece = document.createElement('div');
+                    piece.classList.add('puzzle-piece');
+
+
+                    piece.style.width = `${pieceWidth}px`;
+                    piece.style.height = `${pieceHeight}px`;
+                    piece.style.left = `${j * pieceWidth}px`;
+                    piece.style.top = `${i * pieceHeight}px`;
+
+
+                    const bgX = -j * pieceWidth;
+                    const bgY = -i * pieceHeight;
+                    piece.style.backgroundPosition = `${bgX}px ${bgY}px`;
+                    piece.style.backgroundImage = `url(${originalImageData})`;
+
+
+                    piece.dataset.correctRow = i;
+                    piece.dataset.correctCol = j;
+                    piece.dataset.currentRow = i;
+                    piece.dataset.currentCol = j;
+
+
+                    piece.addEventListener('click', handlePieceClick);
+
+                    puzzlePieces.push(piece);
+                    puzzlePiecesContainer.appendChild(piece);
+                }
+            }
+
+
+            resetGame();
+        }
+
+
+        function handlePieceClick() {
+            if (gameCompleted || !gameStarted || isShowingSolution) return;
+
+            if (firstSelectedPiece === null) {
+                firstSelectedPiece = this;
+
+                firstSelectedPiece.style.border = '2px solid red';
+            } else {
+
+                swapPieces(firstSelectedPiece, this);
+                firstSelectedPiece.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+                firstSelectedPiece = null;
+
+
+                moves++;
+                movesDisplay.textContent = moves;
+
+
+                checkGameCompletion();
+            }
+        }
+
+
+        function swapPieces(piece1, piece2) {
+            const tempLeft = piece1.style.left;
+            const tempTop = piece1.style.top;
+            const tempRow = piece1.dataset.currentRow;
+            const tempCol = piece1.dataset.currentCol;
+
+            piece1.style.left = piece2.style.left;
+            piece1.style.top = piece2.style.top;
+            piece1.dataset.currentRow = piece2.dataset.currentRow;
+            piece1.dataset.currentCol = piece2.dataset.currentCol;
+
+            piece2.style.left = tempLeft;
+            piece2.style.top = tempTop;
+            piece2.dataset.currentRow = tempRow;
+            piece2.dataset.currentCol = tempCol;
+        }
+
+
+        function shufflePuzzle() {
+
+            const occupiedPositions = Array(puzzleRows).fill().map(() => Array(puzzleCols).fill(false));
+
+            puzzlePieces.forEach(piece => {
+
+                let row, col;
+                do {
+                    row = Math.floor(Math.random() * puzzleRows);
+                    col = Math.floor(Math.random() * puzzleCols);
+                } while (occupiedPositions[row][col]);
+
+
+                occupiedPositions[row][col] = true;
+
+
+                const pieceWidth = puzzleContainer.clientWidth / puzzleCols;
+                const pieceHeight = puzzleContainer.clientHeight / puzzleRows;
+
+                piece.style.left = `${col * pieceWidth}px`;
+                piece.style.top = `${row * pieceHeight}px`;
+
+
+                piece.dataset.currentRow = row;
+                piece.dataset.currentCol = col;
+
+
+                piece.classList.remove('placed');
+            });
+
+
+            startTimer();
+        }
+
+
+        function startGame() {
+            if (!gameStarted) {
+                gameStarted = true;
+                gameCompleted = false;
+                gameStartPrompt.classList.add('hidden');
+                shufflePuzzle();
+            }
+        }
+
+
+        function resetGame() {
+
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+
+
+            gameStarted = false;
+            gameCompleted = false;
+            moves = 0;
+            seconds = 0;
+
+
+            timeDisplay.textContent = '00:00';
+            movesDisplay.textContent = '0';
+            gameStartPrompt.classList.remove('hidden');
+            gameCompletePrompt.classList.add('hidden');
+
+
+            puzzlePieces.forEach((piece, index) => {
+                const row = Math.floor(index / puzzleCols);
+                const col = index % puzzleCols;
+                const pieceWidth = puzzleContainer.clientWidth / puzzleCols;
+                const pieceHeight = puzzleContainer.clientHeight / puzzleRows;
+
+                piece.style.left = `${col * pieceWidth}px`;
+                piece.style.top = `${row * pieceHeight}px`;
+                piece.dataset.currentRow = row;
+                piece.dataset.currentCol = col;
+                piece.classList.remove('placed');
+            });
+        }
+
+
+        function toggleSolution() {
+            isShowingSolution = !isShowingSolution;
+
+            if (isShowingSolution) {
+                showSolutionBtn.innerHTML = '<i class="fa fa-eye-slash mr-2"></i>隐藏原图';
+                document.getElementById('original-image').style.opacity = '1';
+            } else {
+                showSolutionBtn.innerHTML = '<i class="fa fa-eye mr-2"></i>显示原图';
+                document.getElementById('original-image').style.opacity = '0.01';
+            }
+        }
+
+
+        function startTimer() {
+            if (timer) {
+                clearInterval(timer);
+            }
+
+            seconds = 0;
+            timer = setInterval(() => {
+                seconds++;
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+
+        function checkGameCompletion() {
+            const isComplete = puzzlePieces.every(piece => {
+                const correctRow = parseInt(piece.dataset.correctRow);
+                const correctCol = parseInt(piece.dataset.correctCol);
+                const currentRow = parseInt(piece.dataset.currentRow);
+                const currentCol = parseInt(piece.dataset.currentCol);
+
+                return correctRow === currentRow && correctCol === currentCol;
+            });
+
+            if (isComplete) {
+                gameCompleted = true;
+
+
+                if (timer) {
+                    clearInterval(timer);
+                    timer = null;
+                }
+
+
+                gameCompletePrompt.classList.remove('hidden');
+                finalTime.textContent = timeDisplay.textContent;
+                finalMoves.textContent = movesDisplay.textContent;
+            }
+        }
+
+
+        startGameBtn.addEventListener('click', startGame);
+        promptStartBtn.addEventListener('click', startGame);
+        resetGameBtn.addEventListener('click', resetGame);
+        showSolutionBtn.addEventListener('click', toggleSolution);
+        playAgainBtn.addEventListener('click', resetGame);
+        shareBtn.addEventListener('click', function () {
+            shareModal.classList.remove('hidden');
+
+        });
+        closeShareModal.addEventListener('click', function () {
+            shareModal.classList.add('hidden');
+        });
+        closeShareBtn.addEventListener('click', function () {
+            shareModal.classList.add('hidden');
+        });
+        copyUrlBtn.addEventListener('click', function () {
+            shareUrl.select();
+            document.execCommand('copy');
+        });
+        
+       
+        difficultyBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                puzzleRows = parseInt(this.dataset.rows);
+                puzzleCols = parseInt(this.dataset.cols);
+                difficultyBtns.forEach(button => {
+                    button.classList.remove('active');
+                });
+                this.classList.add('active');
+                initPuzzle();
+            });
+        });
+        customSizeBtn.addEventListener('click', function () {
+            puzzleRows = parseInt(customRowsInput.value);
+            puzzleCols = parseInt(customColsInput.value);
+            initPuzzle();
+        });
+    </script>
+</body>
+
+</html>

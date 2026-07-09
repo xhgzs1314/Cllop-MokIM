@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>公告中心</title>
+    <link rel="stylesheet" href="/ast/fontawe/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'Roboto', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background-color: #f0f2f6;
+            color: #1e293b;
+            line-height: 1.5;
+        }
+
+
+        .top-nav {
+            background: #ffffff;
+            border-bottom: 1px solid #e9ecef;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #1e4a76 0%, #0f2c47 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-weight: 600;
+            font-size: 1.25rem;
+            letter-spacing: 0.5px;
+            color: #0a2540;
+        }
+
+        .logo-text span {
+            font-weight: 400;
+            color: #5a6e7c;
+            font-size: 0.9rem;
+            margin-left: 6px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #4a5b6e;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #1e6f9f;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8fafc;
+            padding: 6px 12px 6px 8px;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .user-badge i {
+            color: #2c6e9e;
+            font-size: 1rem;
+        }
+
+        .user-badge span {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e3a5f;
+        }
+
+
+        .main-container {
+            max-width: 1280px;
+            margin: 32px auto;
+            padding: 0 32px;
+        }
+
+
+        .page-header {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 28px 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            border: 1px solid #edf2f7;
+            transition: all 0.2s;
+        }
+
+        .title-section h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #0f2c47;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title-section h1 i {
+            color: #2c6e9e;
+            font-size: 1.6rem;
+        }
+
+        .title-section .sub {
+            color: #5a6e7c;
+            margin-top: 8px;
+            font-size: 0.9rem;
+            border-left: 3px solid #cbdde9;
+            padding-left: 14px;
+            margin-left: 6px;
+        }
+
+        .stats-badge {
+            display: inline-flex;
+            background: #eef2ff;
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #1e6f9f;
+            margin-top: 12px;
+        }
+
+
+        .notice-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+
+        .notice-card {
+            background: #ffffff;
+            border-radius: 18px;
+            border: 1px solid #eef2f8;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            transition: all 0.25s ease;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .notice-card:hover {
+            border-color: #cddfe8;
+            box-shadow: 0 8px 20px -8px rgba(0, 32, 64, 0.08);
+            transform: translateY(-2px);
+        }
+
+
+        .card-accent {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #2c6e9e;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .card-inner {
+            padding: 24px 28px 20px 32px;
+        }
+
+        .notice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+
+        .notice-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e2f3e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.2px;
+        }
+
+        .notice-title i {
+            color: #2c6e9e;
+            font-size: 1.2rem;
+            opacity: 0.85;
+        }
+
+        .notice-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .notice-date {
+            font-size: 0.8rem;
+            color: #6f7e91;
+            background: #f8fafc;
+            padding: 4px 10px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .notice-category {
+            font-size: 0.7rem;
+            font-weight: 500;
+            background: #ecfdf5;
+            color: #1e7b5c;
+            padding: 4px 10px;
+            border-radius: 30px;
+            letter-spacing: 0.3px;
+        }
+
+        .notice-content {
+            color: #33475b;
+            font-size: 0.95rem;
+            line-height: 1.55;
+            margin: 16px 0 20px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background: #fefefe;
+            padding-right: 12px;
+        }
+
+        .notice-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 18px;
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 1px solid #eff3f8;
+        }
+
+        .notice-source {
+            font-size: 0.75rem;
+            color: #8a99aa;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .notice-source i {
+            font-size: 0.7rem;
+        }
+
+        .notice-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .notice-btn {
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 6px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            font-family: inherit;
+        }
+
+        .btn-detail {
+            background: #f0f4fa;
+            color: #1e5a7d;
+            border: 1px solid #e2eaf1;
+        }
+
+        .btn-detail:hover {
+            background: #e6edf5;
+            border-color: #bdd3e4;
+            transform: translateY(-1px);
+        }
+
+        .btn-share {
+            background: #ffffff;
+            color: #5b6f88;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-share:hover {
+            background: #f8fafc;
+            color: #2c6e9e;
+            border-color: #cbdde6;
+        }
+
+
+        .empty-state,
+        .error-state {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 64px 32px;
+            text-align: center;
+            border: 1px solid #eef2f8;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        .empty-state i,
+        .error-state i {
+            font-size: 3.2rem;
+            color: #b9cadb;
+            margin-bottom: 20px;
+        }
+
+        .empty-state p,
+        .error-state p {
+            font-size: 1rem;
+            color: #4a627a;
+            font-weight: 450;
+        }
+
+
+        .skeleton-card {
+            background: #ffffff;
+            border-radius: 18px;
+            border: 1px solid #edf2f7;
+            padding: 24px 28px;
+            animation: pulse 1.2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 0.9;
+            }
+
+            100% {
+                opacity: 0.6;
+            }
+        }
+
+        .skeleton-title,
+        .skeleton-line,
+        .skeleton-footer {
+            background: #eef2f8;
+            border-radius: 12px;
+            height: 20px;
+            margin-bottom: 12px;
+        }
+
+        .skeleton-title {
+            width: 45%;
+            height: 26px;
+        }
+
+        .skeleton-line {
+            width: 90%;
+            height: 16px;
+        }
+
+        .skeleton-footer {
+            width: 35%;
+            height: 32px;
+            margin-top: 20px;
+        }
+
+
+        .enterprise-badge {
+            font-size: 0.7rem;
+            background: #eef2ff;
+            color: #2c6288;
+            border-radius: 14px;
+            padding: 2px 8px;
+            font-weight: 500;
+        }
+
+
+        @media (max-width: 768px) {
+
+            .main-container,
+            .nav-container {
+                padding: 0 20px;
+            }
+
+            .card-inner {
+                padding: 20px;
+            }
+
+            .notice-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .notice-footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .notice-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .page-header {
+                padding: 20px 24px;
+            }
+
+            .title-section h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f3f8;
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #bfcfdf;
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9fb1c2;
+        }
+
+
+        .text-small {
+            font-size: 0.7rem;
+        }
+
+        .badge-enterprise {
+            background: #f0f4f9;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #2c6288;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-nav">
+        <div class="nav-container">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="logo-text">
+                    GMOK <span>· IM</span>
+                </div>
+            </div>
+           
+        </div>
+    </div>
+
+    <div class="main-container">
+
+        <div class="page-header">
+            <div class="title-section">
+                <h1>
+                    <i class="fas fa-gavel"></i>
+                    平台公告
+                </h1>
+                <div class="sub">依据《企业信息公示条例》及内部合规指引，发布最新监管动态与运营通知</div>
+                <div class="stats-badge">
+                    <i class="far fa-clock" style="margin-right: 6px;"></i> 实时更新 · 权威发布
+                </div>
+            </div>
+        </div>
+
+
+        <div class="notice-list" id="noticeList">
+
+            <div class="skeleton-card">
+                <div class="skeleton-title"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line" style="width: 70%;"></div>
+                <div class="skeleton-footer"></div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-title"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line" style="width: 80%;"></div>
+                <div class="skeleton-footer"></div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-title"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line" style="width: 65%;"></div>
+                <div class="skeleton-footer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const noticeContainer = document.getElementById('noticeList');
+
+
+            function showSkeleton() {
+                if (noticeContainer.children.length === 0 || noticeContainer.children[0].classList?.contains('notice-card')) {
+
+                }
+
+            }
+
+
+            function renderNotices(notices) {
+                if (!notices || notices.length === 0) {
+                    noticeContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="far fa-newspaper"></i>
+                            <p>暂无公告，请关注后续动态</p>
+                            <div style="margin-top: 16px; font-size: 0.8rem; color: #8ba0b2;">
+                                <i class="fas fa-envelope-open-text"></i> 订阅通知获取最新资讯
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                noticeContainer.innerHTML = '';
+                notices.forEach(notice => {
+                    let shortContent = notice.content || '暂无详细内容，请点击查看详情获取完整公告。';
+
+                    if (shortContent.length > 130) {
+                        shortContent = shortContent.substring(0, 130) + '……';
+                    }
+
+                    let category = '内部通知';
+                    if (notice.title && (notice.title.includes('监管') || notice.title.includes('政策'))) category = '监管动态';
+                    else if (notice.title && (notice.title.includes('升级') || notice.title.includes('系统'))) category = '系统更新';
+                    else if (notice.title && (notice.title.includes('合规') || notice.title.includes('审计'))) category = '合规指南';
+                    else category = '平台公告';
+                    const card = document.createElement('div');
+                    card.className = 'notice-card';
+                    const accentDiv = document.createElement('div');
+                    accentDiv.className = 'card-accent';
+                    card.appendChild(accentDiv);
+                    const innerDiv = document.createElement('div');
+                    innerDiv.className = 'card-inner';
+                    innerDiv.innerHTML = `
+                        <div class="notice-header">
+                            <div class="notice-title">
+                                <i class="fas fa-file-alt"></i>
+                                ${escapeHtml(notice.title)}
+                            </div>
+                            <div class="notice-meta">
+                                <span class="notice-date">
+                                    <i class="far fa-calendar-check"></i>
+                                    ${notice.date || '2025-01-01'}
+                                </span>
+                                <span class="notice-category">
+                                    <i class="fas fa-tag"></i> ${category}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            ${escapeHtml(shortContent).replace(/\n/g, '<br>')}
+                        </div>
+                        <div class="notice-footer">
+                            <div class="notice-source">
+                                <span style="margin-left: 6px;">·</span>
+                                <i class="far fa-eye"></i> 权威编号：${notice.id ? 'NTC-' + String(notice.id).padStart(4, '0') : 'NTC-000'}
+                            </div>
+                            <div class="notice-actions">
+                                <button class="notice-btn btn-detail" data-id="${notice.id}" data-title="${escapeHtml(notice.title)}">
+                                    <i class="fas fa-arrow-right"></i>
+                                    查阅详情
+                                </button>
+                                <button class="notice-btn btn-share share-action" data-id="${notice.id}" data-title="${escapeHtml(notice.title)}">
+                                    <i class="fas fa-share-alt"></i>
+                                    分享
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    card.appendChild(innerDiv);
+                    noticeContainer.appendChild(card);
+                });
+
+
+                const detailBtns = document.querySelectorAll('.btn-detail');
+                detailBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const id = btn.getAttribute('data-id');
+                        if (id) {
+                            window.location.href = `page/${id}.html`;
+                        } else {
+                            alert('详情页建设中......');
+                        }
+                    });
+                });
+
+
+                const shareBtns = document.querySelectorAll('.share-action');
+                shareBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const title = btn.getAttribute('data-title') || '平台公告';
+                        const shareUrl = window.location.href;
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(`${title} —— GMOK平台 ${shareUrl}`).then(() => {
+                                showToastMessage('公告链接已复制，可分享至其它平台', 'success');
+                            }).catch(() => {
+                                alert('复制失败，请手动复制链接');
+                            });
+                        } else {
+                            alert('您的浏览器不支持一键复制，请手动选取链接');
+                        }
+                    });
+                });
+            }
+
+
+            function showToastMessage(msg, type = 'info') {
+                let toast = document.querySelector('.enterprise-toast');
+                if (toast) toast.remove();
+                const toastDiv = document.createElement('div');
+                toastDiv.className = 'enterprise-toast';
+                toastDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}" style="color: #2c6e9e;"></i>
+                        <span>${msg}</span>
+                    </div>
+                `;
+                Object.assign(toastDiv.style, {
+                    position: 'fixed',
+                    bottom: '24px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: '#1f2e3a',
+                    color: 'white',
+                    padding: '10px 20px',
+                    borderRadius: '40px',
+                    fontSize: '0.85rem',
+                    fontWeight: '500',
+                    zIndex: '999',
+                    backdropFilter: 'blur(6px)',
+                    backgroundColor: 'rgba(15, 35, 50, 0.92)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    fontFamily: 'inherit',
+                    letterSpacing: '0.3px'
+                });
+                document.body.appendChild(toastDiv);
+                setTimeout(() => {
+                    if (toastDiv) toastDiv.remove();
+                }, 2800);
+            }
+
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>]/g, function (m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function (c) {
+                    return c;
+                });
+            }
+
+
+            function loadAnnouncements() {
+                noticeContainer.innerHTML = `
+                    <div class="skeleton-card"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line" style="width: 70%;"></div><div class="skeleton-footer"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line" style="width: 80%;"></div><div class="skeleton-footer"></div></div>
+                `;
+
+                fetch('needed.json')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status} 网络异常`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        let announcements = [];
+                        if (Array.isArray(data)) {
+                            announcements = data.filter(item => item && typeof item === 'object').map((item, idx) => {
+                                return {
+                                    id: item.id !== undefined ? item.id : idx + 1,
+                                    title: item.title || '【未命名公告】',
+                                    date: item.date || (new Date().toISOString().slice(0, 10)),
+                                    content: item.content || '请参阅正式公文，点击详情查看完整版公告内容。'
+                                };
+                            });
+                        } else if (data && typeof data === 'object') {
+                            announcements = [{
+                                id: data.id || 1,
+                                title: data.title || '平台公告',
+                                date: data.date || '2025-03-24',
+                                content: data.content || '欢迎访问GMOK公告系统'
+                            }];
+                        } else {
+                            announcements = [];
+                        }
+                        renderNotices(announcements);
+                    })
+                    .catch(error => {
+                        console.error('企业公告数据源获取失败:', error);
+                        noticeContainer.innerHTML = `
+                            <div class="error-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>公告服务暂时无法连接，请检查网络或联系系统管理员。</p>
+                                <div style="margin-top: 18px;">
+                                    <button id="retryLoadBtn" style="background:#eef2f8; border:1px solid #cfdfed; padding: 6px 20px; border-radius:40px; cursor:pointer; font-weight:500;">
+                                        <i class="fas fa-sync-alt"></i> 重新加载
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        const retryBtn = document.getElementById('retryLoadBtn');
+                        if (retryBtn) {
+                            retryBtn.addEventListener('click', () => {
+                                loadAnnouncements();
+                            });
+                        }
+                    });
+            }
+            loadAnnouncements();
+        })();
+    </script>
+</body>
+
+</html>

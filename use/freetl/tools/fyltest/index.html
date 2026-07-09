@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线反应力测试</title>
+    <script src="/ast/3.4.17"></script>
+    <link href="/ast/fontawe/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36D399',
+                        warning: '#FF9F43',
+                        danger: '#FF5252',
+                        neutral: '#F8FAFC',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .transition-transform-opacity {
+                transition-property: transform, opacity;
+                transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+                transition-duration: 300ms;
+            }
+            .scale-up-center {
+                transform: scale(1.05);
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+        }
+    </style>
+    <style>
+        ::-webkit-scrollbar{
+            display: none;
+        }
+    </style>
+</head>
+<body class="font-inter bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+ 
+        <header class="text-center mb-12">
+            <h1 class="text-[clamp(2.5rem,5vw,4rem)] font-bold text-primary mb-4 tracking-tight text-shadow">
+                <i class="fa fa-bolt mr-3"></i>反应力测试
+            </h1>
+            <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+                通过三种不同的测试模式评估你的反应能力，并与国际标准进行对比分析
+            </p>
+        </header>
+
+    
+        <section id="test-selection" class="bg-white rounded-2xl shadow-xl p-8 mb-12 transform hover:shadow-2xl transition-all duration-300">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">选择测试模式</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+                <div class="test-card bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1" data-test="color">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-primary">颜色反应测试</h3>
+                        <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                            <i class="fa fa-clock-o mr-1"></i> 15秒
+                        </span>
+                    </div>
+                    <p class="text-gray-600 mb-4">
+                        当颜色变化时，尽快点击按钮。测试你的视觉反应速度和决策能力。
+                    </p>
+                    <div class="flex justify-between items-center">
+                       
+                        
+                    </div>
+                </div>
+
+             
+                <div class="test-card bg-gradient-to-br from-secondary/5 to-secondary/10 border border-secondary/20 rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1" data-test="click">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-secondary">点击反应测试</h3>
+                        <span class="bg-secondary/10 text-secondary px-3 py-1 rounded-full text-sm font-medium">
+                            <i class="fa fa-clock-o mr-1"></i> 30秒
+                        </span>
+                    </div>
+                    <p class="text-gray-600 mb-4">
+                        当目标出现时，尽快点击它。测试你的视觉注意力和动作反应速度。
+                    </p>
+                    <div class="flex justify-between items-center">
+                       
+                       
+                    </div>
+                </div>
+
+              
+                <div class="test-card bg-gradient-to-br from-warning/5 to-warning/10 border border-warning/20 rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1" data-test="memory">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-warning">记忆反应测试</h3>
+                        <span class="bg-warning/10 text-warning px-3 py-1 rounded-full text-sm font-medium">
+                            <i class="fa fa-clock-o mr-1"></i> 45秒
+                        </span>
+                    </div>
+                    <p class="text-gray-600 mb-4">
+                        记住图案出现的顺序并重复。测试你的短期记忆和反应能力的结合。
+                    </p>
+                    <div class="flex justify-between items-center">
+                        
+                        
+                    </div>
+                </div>
+            </div>
+        </section>
+
+       
+        <section id="test-preparation" class="hidden bg-white rounded-2xl shadow-xl p-8 mb-12">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-2/3 mb-6 md:mb-0 md:pr-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-3" id="prep-test-title">准备开始测试</h2>
+                    <p class="text-gray-600 mb-4" id="prep-test-description">
+                        请仔细阅读以下说明，测试将在你点击开始后立即开始。
+                    </p>
+                    <ul class="space-y-2 mb-6">
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                            <span id="prep-instruction-1">保持专注，测试开始后尽快做出反应</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                            <span id="prep-instruction-2">使用鼠标或触摸屏点击响应</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                            <span id="prep-instruction-3">测试结束后将显示你的反应时间和评分</span>
+                        </li>
+                    </ul>
+                    <div class="flex items-center">
+                        <span class="text-gray-500 mr-3">
+                            <i class="fa fa-user-circle mr-1"></i> 输入你的年龄:
+                        </span>
+                        <input type="number" id="user-age" min="5" max="99" value="25" 
+                               class="w-20 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <span class="text-gray-400 ml-2">岁</span>
+                    </div>
+                </div>
+                <div class="md:w-1/3 bg-neutral rounded-xl p-6 text-center">
+                    <div class="text-5xl font-bold text-primary mb-2" id="prep-test-duration">00:15</div>
+                    <p class="text-gray-500">测试时长</p>
+                    <button id="start-test-btn" class="mt-6 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <i class="fa fa-play mr-2"></i>开始测试
+                    </button>
+                </div>
+            </div>
+        </section>
+
+      
+        <section id="test-area" class="hidden bg-white rounded-2xl shadow-xl p-8 mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800" id="test-title">颜色反应测试</h2>
+                    <p class="text-gray-500" id="test-status">准备就绪，等待开始...</p>
+                </div>
+                <div class="bg-neutral rounded-lg px-4 py-2 flex items-center">
+                    <i class="fa fa-clock-o text-primary mr-2"></i>
+                    <span class="text-xl font-bold text-primary" id="test-timer">00:15</span>
+                </div>
+            </div>
+
+       
+            <div id="test-content" class="min-h-[300px] flex flex-col items-center justify-center">
+          
+                <div id="color-test-container" class="hidden w-full max-w-md mx-auto">
+                    <div id="color-indicator" class="h-40 w-full bg-gray-300 rounded-xl mb-6 flex items-center justify-center">
+                        <span class="text-gray-500 text-lg" id="color-instruction">等待颜色变化</span>
+                    </div>
+                    <button id="color-response-btn" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-medium py-4 px-6 rounded-xl shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        颜色变化时点击这里
+                    </button>
+                </div>
+
+             
+                <div id="click-test-container" class="hidden w-full h-[300px] relative bg-neutral rounded-xl overflow-hidden">
+                    <div id="click-target" class="absolute w-16 h-16 bg-primary rounded-full cursor-pointer hidden transition-all duration-300 transform hover:scale-110"></div>
+                </div>
+
+           
+                <div id="memory-test-container" class="hidden w-full max-w-md mx-auto">
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div id="memory-tile-1" class="h-24 bg-gray-300 rounded-lg cursor-pointer transition-all duration-300 hover:shadow-md"></div>
+                        <div id="memory-tile-2" class="h-24 bg-gray-300 rounded-lg cursor-pointer transition-all duration-300 hover:shadow-md"></div>
+                        <div id="memory-tile-3" class="h-24 bg-gray-300 rounded-lg cursor-pointer transition-all duration-300 hover:shadow-md"></div>
+                        <div id="memory-tile-4" class="h-24 bg-gray-300 rounded-lg cursor-pointer transition-all duration-300 hover:shadow-md"></div>
+                    </div>
+                    <p class="text-gray-500 text-center mb-4" id="memory-instruction">
+                        记住图案出现的顺序
+                    </p>
+                    <div class="flex justify-center">
+                        <button id="memory-next-btn" class="bg-primary hover:bg-primary/90 text-white font-medium py-2 px-6 rounded-lg shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            下一步
+                        </button>
+                    </div>
+                </div>
+
+              
+                <div id="test-countdown" class="text-center">
+                    <div class="text-8xl font-bold text-primary mb-4">3</div>
+                    <p class="text-gray-500">准备开始...</p>
+                </div>
+            </div>
+        </section>
+
+    
+        <section id="test-result" class="hidden bg-white rounded-2xl shadow-xl p-8 mb-12">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">测试完成！</h2>
+                <p class="text-gray-600">你的反应力分析结果</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+               
+                <div class="bg-neutral rounded-xl p-6 text-center transform hover:shadow-lg transition-all duration-300">
+                    <div class="text-2xl font-bold text-primary mb-2">
+                        <i class="fa fa-bolt mr-2"></i>平均反应时间
+                    </div>
+                    <div class="text-4xl font-bold text-gray-800 mb-1" id="result-reaction-time">450ms</div>
+                   
+                </div>
+
+             
+                <div class="bg-neutral rounded-xl p-6 text-center transform hover:shadow-lg transition-all duration-300">
+                    <div class="text-2xl font-bold text-secondary mb-2">
+                        <i class="fa fa-check-circle mr-2"></i>准确率
+                    </div>
+                    <div class="text-4xl font-bold text-gray-800 mb-1" id="result-accuracy">92%</div>
+                   
+                </div>
+
+               
+                <div class="bg-neutral rounded-xl p-6 text-center transform hover:shadow-lg transition-all duration-300">
+                    <div class="text-2xl font-bold text-warning mb-2">
+                        <i class="fa fa-star mr-2"></i>总体评分
+                    </div>
+                    <div class="text-4xl font-bold text-gray-800 mb-1" id="result-score">85</div>
+                    <div class="text-sm text-gray-500">
+                        <span class="inline-block px-2 py-1 rounded-full bg-warning/10 text-warning">
+                            <i class="fa fa-smile-o mr-1"></i>良好
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        
+            <div class="bg-neutral rounded-xl p-6 mb-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">与国际标准对比</h3>
+                <div class="h-64">
+                    <canvas id="comparison-chart"></canvas>
+                </div>
+            </div>
+
+           
+            <div class="bg-neutral rounded-xl p-6 mb-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fa fa-comment mr-2"></i>专家评价
+                </h3>
+                <p class="text-gray-600 leading-relaxed" id="result-analysis">
+                    你的反应能力处于良好水平，在同龄人中表现出色。继续保持锻炼可以进一步提高反应速度。
+                    建议进行更多的反应力训练，如玩反应类游戏或进行特定的反应训练练习。
+                </p>
+            </div>
+
+            <div class="flex justify-center">
+                <button id="try-again-btn" class="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 mr-4">
+                    <i class="fa fa-refresh mr-2"></i>再试一次
+                </button>
+                <button id="change-test-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-8 rounded-full shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                    <i class="fa fa-exchange mr-2"></i>更换测试
+                </button>
+            </div>
+        </section>
+
+      
+        <section id="reaction-standards" class="bg-white rounded-2xl shadow-xl p-8 mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">不同年龄区间的反应力标准</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white rounded-xl overflow-hidden">
+                    <thead>
+                        <tr class="bg-primary text-white">
+                            <th class="py-3 px-6 text-left font-semibold">年龄区间</th>
+                            <th class="py-3 px-6 text-left font-semibold">优秀</th>
+                            <th class="py-3 px-6 text-left font-semibold">良好</th>
+                            <th class="py-3 px-6 text-left font-semibold">一般</th>
+                            <th class="py-3 px-6 text-left font-semibold">需要提高</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td class="py-3 px-6 font-medium">5-18岁</td>
+                            <td class="py-3 px-6 text-green-600">200-300ms</td>
+                            <td class="py-3 px-6 text-yellow-600">301-350ms</td>
+                            <td class="py-3 px-6 text-orange-600">351-450ms</td>
+                            <td class="py-3 px-6 text-red-600">451ms以上</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td class="py-3 px-6 font-medium">19-29岁</td>
+                            <td class="py-3 px-6 text-green-600">250-350ms</td>
+                            <td class="py-3 px-6 text-yellow-600">351-400ms</td>
+                            <td class="py-3 px-6 text-orange-600">401-500ms</td>
+                            <td class="py-3 px-6 text-red-600">501ms以上</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td class="py-3 px-6 font-medium">30-39岁</td>
+                            <td class="py-3 px-6 text-green-600">300-400ms</td>
+                            <td class="py-3 px-6 text-yellow-600">401-450ms</td>
+                            <td class="py-3 px-6 text-orange-600">451-550ms</td>
+                            <td class="py-3 px-6 text-red-600">551ms以上</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td class="py-3 px-6 font-medium">40-49岁</td>
+                            <td class="py-3 px-6 text-green-600">350-450ms</td>
+                            <td class="py-3 px-6 text-yellow-600">451-500ms</td>
+                            <td class="py-3 px-6 text-orange-600">501-600ms</td>
+                            <td class="py-3 px-6 text-red-600">601ms以上</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td class="py-3 px-6 font-medium">50-59岁</td>
+                            <td class="py-3 px-6 text-green-600">400-500ms</td>
+                            <td class="py-3 px-6 text-yellow-600">501-550ms</td>
+                            <td class="py-3 px-6 text-orange-600">551-650ms</td>
+                            <td class="py-3 px-6 text-red-600">651ms以上</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td class="py-3 px-6 font-medium">60岁以上</td>
+                            <td class="py-3 px-6 text-green-600">450-550ms</td>
+                            <td class="py-3 px-6 text-yellow-600">551-650ms</td>
+                            <td class="py-3 px-6 text-orange-600">651-750ms</td>
+                            <td class="py-3 px-6 text-red-600">751ms以上</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <h3 class="text-lg font-semibold text-primary mb-2">
+                    <i class="fa fa-lightbulb-o mr-2"></i>提高反应力的小建议
+                </h3>
+                <ul class="space-y-2 text-gray-600">
+                    <li class="flex items-start">
+                        <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                        <span>定期进行反应力训练，如玩反应类游戏或练习</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                        <span>保持良好的睡眠和饮食习惯，确保大脑处于最佳状态</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                        <span>减少压力和焦虑，压力会影响反应速度和注意力</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+                        <span>进行体育锻炼，特别是需要快速反应的运动</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+     
+        <footer class="text-center text-gray-500 py-6">
+            <p class="mt-2 text-sm">
+                本测试仅供参考，不能替代专业的医学或心理学评估
+            </p>
+        </footer>
+    </div>
+
+    <script src="/ast/chart.umd.min.js"></script>
+    <script>
+       
+        let currentTest = null;
+        let testStartTime = 0;
+        let reactionTimes = [];
+        let testTimer = null;
+        let testDuration = 0;
+        let remainingTime = 0;
+        let isTestRunning = false;
+        let currentStep = 0;
+        let sequence = [];
+        let userSequence = [];
+        let testCountdown = null;
+        let comparisonChart = null;
+        let userAge = 25;
+
+        
+        const testSelection = document.getElementById('test-selection');
+        const testPreparation = document.getElementById('test-preparation');
+        const testArea = document.getElementById('test-area');
+        const testResult = document.getElementById('test-result');
+        const testCards = document.querySelectorAll('.test-card');
+        const prepTestTitle = document.getElementById('prep-test-title');
+        const prepTestDescription = document.getElementById('prep-test-description');
+        const prepInstruction1 = document.getElementById('prep-instruction-1');
+        const prepInstruction2 = document.getElementById('prep-instruction-2');
+        const prepInstruction3 = document.getElementById('prep-instruction-3');
+        const prepTestDuration = document.getElementById('prep-test-duration');
+        const startTestBtn = document.getElementById('start-test-btn');
+        const userAgeInput = document.getElementById('user-age');
+        const testTitle = document.getElementById('test-title');
+        const testStatus = document.getElementById('test-status');
+        const testTimerEl = document.getElementById('test-timer');
+        const testCountdownEl = document.getElementById('test-countdown');
+        const colorTestContainer = document.getElementById('color-test-container');
+        const colorIndicator = document.getElementById('color-indicator');
+        const colorResponseBtn = document.getElementById('color-response-btn');
+        const colorInstruction = document.getElementById('color-instruction');
+        const clickTestContainer = document.getElementById('click-test-container');
+        const clickTarget = document.getElementById('click-target');
+        const memoryTestContainer = document.getElementById('memory-test-container');
+        const memoryTiles = [
+            document.getElementById('memory-tile-1'),
+            document.getElementById('memory-tile-2'),
+            document.getElementById('memory-tile-3'),
+            document.getElementById('memory-tile-4')
+        ];
+        const memoryInstruction = document.getElementById('memory-instruction');
+        const memoryNextBtn = document.getElementById('memory-next-btn');
+        const resultReactionTime = document.getElementById('result-reaction-time');
+        const resultAccuracy = document.getElementById('result-accuracy');
+        const resultScore = document.getElementById('result-score');
+        const resultAnalysis = document.getElementById('result-analysis');
+        const tryAgainBtn = document.getElementById('try-again-btn');
+        const changeTestBtn = document.getElementById('change-test-btn');
+
+        
+        const testConfig = {
+            color: {
+                name: '颜色反应测试',
+                description: '当颜色变化时，尽快点击按钮。测试你的视觉反应速度和决策能力。',
+                duration: 15,
+                instruction1: '等待颜色从灰色变为其他颜色',
+                instruction2: '颜色变化后立即点击下方按钮',
+                instruction3: '测试将进行多次，记录你的平均反应时间',
+                colors: ['#FF5252', '#36D399', '#165DFF', '#FF9F43', '#9C27B0']
+            },
+            click: {
+                name: '点击反应测试',
+                description: '当目标出现时，尽快点击它。测试你的视觉注意力和动作反应速度。',
+                duration: 30,
+                instruction1: '等待目标在随机位置出现',
+                instruction2: '目标出现后立即点击它',
+                instruction3: '测试将进行多次，记录你的平均反应时间',
+                minSize: 20,
+                maxSize: 80,
+                minDuration: 500,
+                maxDuration: 2000
+            },
+            memory: {
+                name: '记忆反应测试',
+                description: '记住图案出现的顺序并重复。测试你的短期记忆和反应能力的结合。',
+                duration: 45,
+                instruction1: '观察并记住图案亮起的顺序',
+                instruction2: '图案显示完毕后，按照相同顺序点击瓷砖',
+                instruction3: '测试将逐步增加难度，记录你的准确率和反应时间',
+                colors: ['#FF5252', '#36D399', '#165DFF', '#FF9F43'],
+                sequenceLength: 5
+            }
+        };
+
+        
+        function initColorTest() {
+            colorTestContainer.classList.remove('hidden');
+            colorResponseBtn.disabled = true;
+            colorResponseBtn.classList.add('bg-gray-400', 'hover:bg-gray-500');
+            colorResponseBtn.classList.remove('bg-primary', 'hover:bg-primary/90');
+            colorIndicator.style.backgroundColor = '#E2E8F0';
+            colorInstruction.textContent = '等待颜色变化';
+
+            
+            const delay = Math.random() * 3000 + 1000;
+            setTimeout(() => {
+                if (!isTestRunning) return;
+                
+                const randomColor = testConfig.color.colors[Math.floor(Math.random() * testConfig.color.colors.length)];
+                colorIndicator.style.backgroundColor = randomColor;
+                colorInstruction.textContent = '现在！点击按钮';
+                colorResponseBtn.disabled = false;
+                colorResponseBtn.classList.remove('bg-gray-400', 'hover:bg-gray-500');
+                colorResponseBtn.classList.add('bg-primary', 'hover:bg-primary/90');
+                
+                testStartTime = Date.now();
+            }, delay);
+        }
+
+        function handleColorResponse() {
+            if (!isTestRunning) return;
+            
+            const reactionTime = Date.now() - testStartTime;
+            reactionTimes.push(reactionTime);
+            
+            colorResponseBtn.disabled = true;
+            colorResponseBtn.classList.add('bg-gray-400', 'hover:bg-gray-500');
+            colorResponseBtn.classList.remove('bg-primary', 'hover:bg-primary/90');
+            colorIndicator.style.backgroundColor = '#E2E8F0';
+            colorInstruction.textContent = '等待下一次变化';
+            
+            
+            if (isTestRunning) {
+                const delay = Math.random() * 2000 + 1000;
+                setTimeout(initColorTest, delay);
+            }
+        }
+
+        
+        function initClickTest() {
+            clickTestContainer.classList.remove('hidden');
+            
+            
+            const containerWidth = clickTestContainer.clientWidth;
+            const containerHeight = clickTestContainer.clientHeight;
+            const size = Math.floor(Math.random() * (testConfig.click.maxSize - testConfig.click.minSize + 1)) + testConfig.click.minSize;
+            
+            const maxLeft = containerWidth - size;
+            const maxTop = containerHeight - size;
+            
+            const left = Math.floor(Math.random() * maxLeft);
+            const top = Math.floor(Math.random() * maxTop);
+            
+            clickTarget.style.width = `${size}px`;
+            clickTarget.style.height = `${size}px`;
+            clickTarget.style.left = `${left}px`;
+            clickTarget.style.top = `${top}px`;
+            clickTarget.style.backgroundColor = testConfig.color.colors[Math.floor(Math.random() * testConfig.color.colors.length)];
+            clickTarget.classList.remove('hidden');
+            
+            testStartTime = Date.now();
+            
+            
+            const duration = Math.floor(Math.random() * (testConfig.click.maxDuration - testConfig.click.minDuration + 1)) + testConfig.click.minDuration;
+            clickTarget.dataset.disappearTime = Date.now() + duration;
+            
+            setTimeout(() => {
+                if (isTestRunning && Date.now() >= parseInt(clickTarget.dataset.disappearTime)) {
+                    clickTarget.classList.add('hidden');
+                    
+                    reactionTimes.push(null);
+                    
+                    
+                    if (isTestRunning) {
+                        const delay = Math.random() * 1000 + 500;
+                        setTimeout(initClickTest, delay);
+                    }
+                }
+            }, duration);
+        }
+
+        function handleClickResponse() {
+            if (!isTestRunning) return;
+            
+            
+            if (Date.now() <= parseInt(clickTarget.dataset.disappearTime)) {
+                const reactionTime = Date.now() - testStartTime;
+                reactionTimes.push(reactionTime);
+            }
+            
+            clickTarget.classList.add('hidden');
+            
+            
+            if (isTestRunning) {
+                const delay = Math.random() * 1000 + 500;
+                setTimeout(initClickTest, delay);
+            }
+        }
+
+        
+        function initMemoryTest() {
+            memoryTestContainer.classList.remove('hidden');
+            currentStep = 0;
+            sequence = [];
+            userSequence = [];
+            
+            
+            for (let i = 0; i < testConfig.memory.sequenceLength; i++) {
+                sequence.push(Math.floor(Math.random() * 4));
+            }
+            
+            showSequence();
+        }
+
+        function showSequence() {
+            let i = 0;
+            memoryInstruction.textContent = '记住图案出现的顺序';
+            memoryNextBtn.disabled = true;
+            
+            
+            memoryTiles.forEach(tile => {
+                tile.onclick = null;
+                tile.classList.remove('cursor-pointer');
+            });
+            
+            const interval = setInterval(() => {
+                if (i >= sequence.length || !isTestRunning) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        if (isTestRunning) {
+                            memoryInstruction.textContent = '现在按照相同顺序点击瓷砖';
+                            enableUserInput();
+                        }
+                    }, 500);
+                    return;
+                }
+                
+                
+                memoryTiles.forEach((tile, index) => {
+                    tile.style.backgroundColor = '#E2E8F0';
+                });
+                
+                
+                const currentTile = sequence[i];
+                memoryTiles[currentTile].style.backgroundColor = testConfig.memory.colors[currentTile];
+                
+                setTimeout(() => {
+                    if (isTestRunning) {
+                        memoryTiles[currentTile].style.backgroundColor = '#E2E8F0';
+                    }
+                }, 500);
+                
+                i++;
+            }, 1000);
+        }
+
+        function enableUserInput() {
+            userSequence = [];
+            
+            
+            memoryTiles.forEach((tile, index) => {
+                tile.onclick = () => handleMemoryTileClick(index);
+                tile.classList.add('cursor-pointer');
+            });
+        }
+
+        function handleMemoryTileClick(index) {
+            if (!isTestRunning) return;
+            
+            
+            userSequence.push(index);
+            
+            
+            memoryTiles[index].style.backgroundColor = testConfig.memory.colors[index];
+            
+            setTimeout(() => {
+                if (isTestRunning) {
+                    memoryTiles[index].style.backgroundColor = '#E2E8F0';
+                    
+                    
+                    if (userSequence.length === sequence.length) {
+                        
+                        const reactionTime = Date.now() - testStartTime;
+                        reactionTimes.push(reactionTime);
+                        
+                        
+                        let isCorrect = true;
+                        for (let i = 0; i < sequence.length; i++) {
+                            if (sequence[i] !== userSequence[i]) {
+                                isCorrect = false;
+                                break;
+                            }
+                        }
+                        
+                        
+                        memoryTiles.forEach(tile => {
+                            tile.onclick = null;
+                            tile.classList.remove('cursor-pointer');
+                        });
+                        
+                        if (isCorrect) {
+                            memoryInstruction.textContent = '正确！进入下一轮';
+                            memoryNextBtn.disabled = false;
+                        } else {
+                            memoryInstruction.textContent = '错误！再试一次';
+                            memoryNextBtn.disabled = false;
+                        }
+                    }
+                }
+            }, 300);
+        }
+
+        function handleMemoryNext() {
+            if (!isTestRunning) return;
+            
+            
+            memoryNextBtn.disabled = true;
+            showSequence();
+        }
+
+        
+        function startCountdown() {
+            testCountdownEl.classList.remove('hidden');
+            let count = 3;
+            
+            testCountdownEl.querySelector('div').textContent = count;
+            
+            testCountdown = setInterval(() => {
+                count--;
+                
+                if (count > 0) {
+                    testCountdownEl.querySelector('div').textContent = count;
+                } else {
+                    clearInterval(testCountdown);
+                    testCountdownEl.classList.add('hidden');
+                    startTest();
+                }
+            }, 1000);
+        }
+
+        
+        function startTest() {
+            isTestRunning = true;
+            reactionTimes = [];
+            remainingTime = testDuration;
+            
+            updateTimer();
+            testStatus.textContent = '测试进行中...';
+            
+            testTimer = setInterval(() => {
+                remainingTime--;
+                updateTimer();
+                
+                if (remainingTime <= 0) {
+                    endTest();
+                }
+            }, 1000);
+            
+            
+            if (currentTest === 'color') {
+                initColorTest();
+            } else if (currentTest === 'click') {
+                initClickTest();
+            } else if (currentTest === 'memory') {
+                testStartTime = Date.now();
+                initMemoryTest();
+            }
+        }
+
+        
+        function endTest() {
+            isTestRunning = false;
+            clearInterval(testTimer);
+            
+            
+            colorTestContainer.classList.add('hidden');
+            clickTestContainer.classList.add('hidden');
+            memoryTestContainer.classList.add('hidden');
+            
+            
+            calculateResults();
+            
+            
+            testArea.classList.add('hidden');
+            testResult.classList.remove('hidden');
+        }
+
+        
+        function updateTimer() {
+            const minutes = Math.floor(remainingTime / 60).toString().padStart(2, '0');
+            const seconds = (remainingTime % 60).toString().padStart(2, '0');
+            testTimerEl.textContent = `${minutes}:${seconds}`;
+        }
+
+        
+        function calculateResults() {
+            
+            const validReactionTimes = reactionTimes.filter(time => time !== null);
+            
+            
+            let avgReactionTime = 0;
+            if (validReactionTimes.length > 0) {
+                avgReactionTime = Math.round(validReactionTimes.reduce((sum, time) => sum + time, 0) / validReactionTimes.length);
+            }
+            
+            
+            let accuracy = 0;
+            if (currentTest === 'memory' && reactionTimes.length > 0) {
+                
+                accuracy = Math.round((validReactionTimes.length / reactionTimes.length) * 100);
+            } else {
+                
+                accuracy = Math.round((validReactionTimes.length / reactionTimes.length) * 100);
+            }
+            
+            
+            let score = calculateScore(avgReactionTime, userAge);
+            
+            
+            resultReactionTime.textContent = `${avgReactionTime}ms`;
+            resultAccuracy.textContent = `${accuracy}%`;
+            resultScore.textContent = score;
+            
+            
+            generateAnalysis(avgReactionTime, score, userAge);
+            
+            
+            generateComparisonChart(avgReactionTime, userAge);
+        }
+
+        
+        function calculateScore(reactionTime, age) {
+            
+            let baseScore = Math.max(0, Math.min(100, 100 - (reactionTime - 200) / 10));
+            
+            
+            let ageFactor = 1;
+            if (age >= 5 && age <= 18) {
+                ageFactor = 1.2; 
+            } else if (age >= 19 && age <= 29) {
+                ageFactor = 1.0; 
+            } else if (age >= 30 && age <= 39) {
+                ageFactor = 0.95;
+            } else if (age >= 40 && age <= 49) {
+                ageFactor = 0.9;
+            } else if (age >= 50 && age <= 59) {
+                ageFactor = 0.85;
+            } else if (age >= 60) {
+                ageFactor = 0.8;
+            }
+            
+            
+            let finalScore = Math.round(baseScore * ageFactor);
+            
+            
+            return Math.max(0, Math.min(100, finalScore));
+        }
+
+        
+        function generateAnalysis(reactionTime, score, age) {
+            let analysis = '';
+            
+            if (score >= 90) {
+                analysis = '你的反应能力极其出色，在同龄人中处于顶尖水平。你的神经系统反应速度快，注意力集中能力强。继续保持锻炼，可以考虑参加需要快速反应的活动或运动。';
+            } else if (score >= 80) {
+                analysis = '你的反应能力非常优秀，在同龄人中表现出色。你有很好的神经反应速度和注意力。继续保持锻炼可以进一步提高反应速度。';
+            } else if (score >= 70) {
+                analysis = '你的反应能力处于良好水平，在同龄人中表现良好。你有正常的神经反应速度和注意力。建议进行更多的反应力训练，如玩反应类游戏或进行特定的反应训练练习。';
+            } else if (score >= 60) {
+                analysis = '你的反应能力处于中等水平，在同龄人中表现一般。这是正常的反应水平，但可以通过训练提高。尝试进行更多的反应力训练和注意力练习。';
+            } else if (score >= 50) {
+                analysis = '你的反应能力略低于平均水平，可能需要更多的训练和练习来提高。反应力可以通过定期训练得到改善，建议增加一些反应类游戏或练习。';
+            } else {
+                analysis = '你的反应能力目前低于平均水平。这可能与缺乏训练、疲劳或其他因素有关。建议进行规律的反应力训练，并确保充足的休息和健康的生活方式。';
+            }
+            
+            
+            if (age >= 5 && age <= 18) {
+                analysis += ' 作为青少年，你的神经系统仍在发育中，定期的反应训练可以帮助提高神经传导速度和大脑处理能力。';
+            } else if (age >= 60) {
+                analysis += ' 随着年龄增长，反应速度自然会有所下降，但定期的反应训练可以帮助保持和提高现有的反应能力。';
+            }
+            
+            resultAnalysis.textContent = analysis;
+        }
+
+        
+        function generateComparisonChart(reactionTime, age) {
+            
+            if (comparisonChart) {
+                comparisonChart.destroy();
+            }
+            
+            
+            let ageGroup = '';
+            if (age >= 5 && age <= 18) ageGroup = '5-18岁';
+            else if (age >= 19 && age <= 29) ageGroup = '19-29岁';
+            else if (age >= 30 && age <= 39) ageGroup = '30-39岁';
+            else if (age >= 40 && age <= 49) ageGroup = '40-49岁';
+            else if (age >= 50 && age <= 59) ageGroup = '50-59岁';
+            else ageGroup = '60岁以上';
+            
+            
+            let standards = {};
+            if (age >= 5 && age <= 18) {
+                standards = { excellent: 300, good: 350, average: 450, belowAverage: 451 };
+            } else if (age >= 19 && age <= 29) {
+                standards = { excellent: 350, good: 400, average: 500, belowAverage: 501 };
+            } else if (age >= 30 && age <= 39) {
+                standards = { excellent: 400, good: 450, average: 550, belowAverage: 551 };
+            } else if (age >= 40 && age <= 49) {
+                standards = { excellent: 450, good: 500, average: 600, belowAverage: 601 };
+            } else if (age >= 50 && age <= 59) {
+                standards = { excellent: 500, good: 550, average: 650, belowAverage: 651 };
+            } else {
+                standards = { excellent: 550, good: 650, average: 750, belowAverage: 751 };
+            }
+            
+            
+            const ctx = document.getElementById('comparison-chart').getContext('2d');
+            comparisonChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['优秀', '良好', '一般', '需要提高', '你的成绩'],
+                    datasets: [{
+                        label: '反应时间 (ms)',
+                        data: [standards.excellent, standards.good, standards.average, standards.belowAverage, reactionTime],
+                        backgroundColor: [
+                            'rgba(54, 211, 153, 0.7)',  
+                            'rgba(22, 93, 255, 0.7)',   
+                            'rgba(255, 159, 67, 0.7)',  
+                            'rgba(255, 82, 82, 0.7)',   
+                            'rgba(156, 39, 176, 0.9)'   
+                        ],
+                        borderColor: [
+                            'rgb(54, 211, 153)',
+                            'rgb(22, 93, 255)',
+                            'rgb(255, 159, 67)',
+                            'rgb(255, 82, 82)',
+                            'rgb(156, 39, 176)'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            reverse: true,
+                            title: {
+                                display: true,
+                                text: '反应时间 (毫秒)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: `年龄组: ${ageGroup}`
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `反应时间: ${context.raw}ms`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        
+        testCards.forEach(card => {
+            card.addEventListener('click', () => {
+                currentTest = card.dataset.test;
+                
+                
+                prepTestTitle.textContent = testConfig[currentTest].name;
+                prepTestDescription.textContent = testConfig[currentTest].description;
+                prepInstruction1.textContent = testConfig[currentTest].instruction1;
+                prepInstruction2.textContent = testConfig[currentTest].instruction2;
+                prepInstruction3.textContent = testConfig[currentTest].instruction3;
+                
+                const minutes = Math.floor(testConfig[currentTest].duration / 60).toString().padStart(2, '0');
+                const seconds = (testConfig[currentTest].duration % 60).toString().padStart(2, '0');
+                prepTestDuration.textContent = `${minutes}:${seconds}`;
+                
+                
+                testSelection.classList.add('hidden');
+                testPreparation.classList.remove('hidden');
+                testArea.classList.add('hidden');
+                testResult.classList.add('hidden');
+            });
+        });
+
+        startTestBtn.addEventListener('click', () => {
+            
+            userAge = parseInt(userAgeInput.value);
+            if (isNaN(userAge) || userAge < 5 || userAge > 99) {
+                userAge = 25;
+                userAgeInput.value = 25;
+            }
+            
+            
+            testTitle.textContent = testConfig[currentTest].name;
+            testDuration = testConfig[currentTest].duration;
+            remainingTime = testDuration;
+            
+            
+            updateTimer();
+            
+            
+            colorTestContainer.classList.add('hidden');
+            clickTestContainer.classList.add('hidden');
+            memoryTestContainer.classList.add('hidden');
+            
+            
+            testPreparation.classList.add('hidden');
+            testArea.classList.remove('hidden');
+            testResult.classList.add('hidden');
+            
+            
+            startCountdown();
+        });
+
+        colorResponseBtn.addEventListener('click', handleColorResponse);
+        clickTarget.addEventListener('click', handleClickResponse);
+        memoryNextBtn.addEventListener('click', handleMemoryNext);
+
+        tryAgainBtn.addEventListener('click', () => {
+            
+            testResult.classList.add('hidden');
+            testArea.classList.remove('hidden');
+            
+            
+            startCountdown();
+        });
+
+        changeTestBtn.addEventListener('click', () => {
+          
+            testResult.classList.add('hidden');
+            testSelection.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
+    

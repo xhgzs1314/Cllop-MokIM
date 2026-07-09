@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>聊天数据导入/导出 · 证据包管理</title>
+    <script src="/ast/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/ast/fontawe/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f6f9fc 0%, #eef2f7 100%);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 30px 20px;
+            color: #0b1c33;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1340px;
+            margin: 0 auto;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cad5e0;
+            border-radius: 12px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f4fa;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 34px;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1a4cff, #0f9b4e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 i {
+            background: linear-gradient(135deg, #2563eb, #16a34a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 2.4rem;
+        }
+
+        .header p {
+            color: #405d7a;
+            font-size: 1rem;
+            margin-top: 6px;
+            font-weight: 400;
+            letter-spacing: 0.2px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(2px);
+            border-radius: 32px;
+            box-shadow: 0 12px 30px rgba(0, 20, 40, 0.06), 0 4px 10px rgba(0, 0, 0, 0.02);
+            padding: 1.6rem 1.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: transform 0.15s ease, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: 0 20px 40px rgba(0, 20, 40, 0.08);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 30px;
+            padding: 1.1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.02);
+            border: 1px solid #eef4fc;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: #c7d9f0;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -8px rgba(37, 99, 235, 0.08);
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            background: #eef6ff;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            color: #2563eb;
+            flex-shrink: 0;
+        }
+
+        .stat-info h3 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #567394;
+            margin-bottom: 4px;
+        }
+
+        .stat-number {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #0f263e;
+            line-height: 1.2;
+        }
+
+        .stat-sub {
+            font-size: 0.7rem;
+            color: #6c89a8;
+            margin-top: 2px;
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .chart-container {
+            max-width: 100%;
+            height: 300px;
+            position: relative;
+            margin: 6px 0 8px;
+        }
+
+        canvas {
+            max-height: 260px;
+            width: 100%;
+        }
+
+        .type-legend {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .message-table-wrapper {
+            overflow-x: auto;
+            max-height: 380px;
+            border-radius: 24px;
+            border: 1px solid #e3ecf5;
+            background: white;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .data-table th {
+            background: #f8fcff;
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 600;
+            color: #1d3957;
+            border-bottom: 1px solid #dce6f0;
+            position: sticky;
+            top: 0;
+            backdrop-filter: blur(4px);
+            background-color: #f8fcff;
+        }
+
+        .data-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #eff4fa;
+            color: #1f3853;
+        }
+
+        .data-table tr:hover td {
+            background: #fafdff;
+        }
+
+        .badge {
+            background: #e8f0fe;
+            color: #1f4b8a;
+            border-radius: 40px;
+            padding: 3px 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: inline-block;
+            letter-spacing: 0.2px;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 14px;
+            margin-bottom: 26px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 26px;
+            border-radius: 60px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: #1a4cff;
+            color: white;
+            border-color: #1a4cff;
+        }
+
+        .btn-primary:hover {
+            background: #0f3ed9;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -8px #1a4cff66;
+        }
+
+        .btn-secondary {
+            background: #f2f8ff;
+            color: #1f3d5c;
+            border: 1px solid #d3e2f5;
+        }
+
+        .btn-secondary:hover {
+            background: #e6f0fe;
+            border-color: #b0cae5;
+        }
+
+        .btn-success {
+            background: #0f9b4e;
+            color: white;
+            border-color: #0f9b4e;
+        }
+
+        .btn-success:hover {
+            background: #0d8442;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -8px #0f9b4e66;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #cbddee;
+            color: #1d3f60;
+        }
+
+        .btn-outline:hover {
+            background: #f0f8ff;
+        }
+
+        /* dialog  */
+        .custom-dialog-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(8, 25, 48, 0.6);
+            backdrop-filter: blur(6px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-dialog-box {
+            background: white;
+            width: 400px;
+            max-width: 92%;
+            border-radius: 36px;
+            box-shadow: 0 40px 60px -20px rgba(0, 0, 0, 0.4);
+            animation: dialogFadeIn 0.2s ease-out;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes dialogFadeIn {
+            from { opacity: 0; transform: scale(0.94); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .custom-dialog-header {
+            padding: 18px 24px 8px 24px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #0b253f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eef5fc;
+        }
+
+        .custom-dialog-close {
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #8aa3bf;
+            transition: color 0.2s;
+        }
+        .custom-dialog-close:hover { color: #1a3b5c; }
+
+        .custom-dialog-body {
+            padding: 24px 24px 12px;
+            font-size: 0.95rem;
+            color: #1e3b58;
+            line-height: 1.6;
+        }
+
+        .custom-dialog-footer {
+            padding: 12px 24px 22px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .custom-dialog-btn {
+            padding: 8px 24px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f1f7fe;
+            color: #1d3b58;
+        }
+
+        .custom-dialog-btn-primary {
+            background: #1a4cff;
+            color: white;
+        }
+        .custom-dialog-btn-primary:hover { background: #0f3ed9; }
+        .custom-dialog-btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 30, 50, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            backdrop-filter: blur(4px);
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 20px 40px;
+            border-radius: 60px;
+            font-weight: 500;
+            gap: 14px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 30px 40px -12px rgba(0,0,0,0.2);
+            color: #1d3f5e;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 0.75rem;
+            color: #6f8fae;
+            opacity: 0.8;
+        }
+
+        .size-badge {
+            background: #deeaf9;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #1a3e66;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        @media (max-width: 780px) {
+            .two-columns { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+            body { padding: 16px; }
+            .header h1 { font-size: 1.9rem; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-message" style="margin-right: 8px;"></i> 聊天数据 · 证据包</h1>
+            <p>导入 / 导出 JSON 数据包 · 哈希链兼容 · 实时统计</p>
+        </div>
+
+        <div class="action-bar">
+            <button id="importMessagesBtn" class="btn btn-secondary"><i class="fas fa-upload"></i> 导入 JSON</button>
+            <button id="exportAllMessagesBtn" class="btn btn-primary"><i class="fas fa-download"></i> 导出全部消息</button>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-comment-dots"></i></div>
+                <div class="stat-info">
+                    <h3>总消息数</h3>
+                    <div class="stat-number" id="totalMessages">0</div>
+                    <div class="stat-sub">含系统消息</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-user-friends"></i></div>
+                <div class="stat-info">
+                    <h3>文本消息</h3>
+                    <div class="stat-number" id="textCount">0</div>
+                    <div class="stat-sub">纯文本对话</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-image"></i></div>
+                <div class="stat-info">
+                    <h3>图片消息</h3>
+                    <div class="stat-number" id="imageCount">0</div>
+                    <div class="stat-sub">image 类型</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-paperclip"></i></div>
+                <div class="stat-info">
+                    <h3>文件消息</h3>
+                    <div class="stat-number" id="fileCount">0</div>
+                    <div class="stat-sub">附件/文档</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-phone-alt"></i></div>
+                <div class="stat-info">
+                    <h3>通话记录</h3>
+                    <div class="stat-number" id="callCount">0</div>
+                    <div class="stat-sub">语音/视频</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-bullhorn"></i></div>
+                <div class="stat-info">
+                    <h3>其他类型</h3>
+                    <div class="stat-number" id="otherCount">0</div>
+                    <div class="stat-sub">引用/系统等</div>
+                </div>
+            </div>
+          
+            <div class="stat-card" style="grid-column: span 1; background: linear-gradient(145deg, #ffffff, #f7fcff);">
+                <div class="stat-icon" style="background: #d7ecfa; color: #0f6b9e;"><i class="fas fa-database"></i></div>
+                <div class="stat-info">
+                    <h3>数据大小</h3>
+                    <div class="stat-number" id="dataSizeDisplay" style="font-size: 1.7rem;">0 KB</div>
+                    <div class="stat-sub">JSON 序列化后</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="two-columns">
+            <div class="card">
+                <h3 style="margin-bottom: 10px; font-weight: 600; display: flex; gap: 8px;"><i class="fas fa-chart-pie" style="color: #2563eb;"></i> 类型分布</h3>
+                <div class="chart-container"><canvas id="typePieChart" width="400" height="280"></canvas></div>
+                <div id="pieLegend" class="type-legend"></div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 16px; font-weight: 600; display: flex; gap: 8px;"><i class="fas fa-list-ul" style="color: #2563eb;"></i> 最近消息 · 最新20条</h3>
+                <div class="message-table-wrapper">
+                    <table class="data-table" id="previewTable">
+                        <thead><tr><th>时间</th><th>发送方</th><th>类型</th><th>内容摘要</th></tr></thead>
+                        <tbody id="previewTbody"><tr><td colspan="4" style="text-align:center; padding: 30px 0;">暂无数据，请导入</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h3 style="margin-bottom: 14px; font-weight: 600; display: flex; gap: 8px;"><i class="fas fa-chart-line" style="color: #2563eb;"></i> 高级统计 & 会话摘要</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px 36px; align-items: center;">
+                <div><span class="badge"><i class="far fa-calendar-alt"></i> 首条消息</span> <strong id="firstMsgTime" style="font-weight: 600;">—</strong></div>
+                <div><span class="badge"><i class="far fa-clock"></i> 最晚消息</span> <strong id="lastMsgTime" style="font-weight: 600;">—</strong></div>
+                <div><span class="badge"><i class="fas fa-hashtag"></i> 会话数</span> <strong id="convCount" style="font-weight: 600;">0</strong></div>
+                <div><span class="badge"><i class="fas fa-shield-alt"></i> 哈希链</span> <strong id="hashValidStatus" style="font-weight: 500;">未验证</strong></div>
+                <div style="margin-left: auto;"><span class="size-badge"><i class="fas fa-weight-scale"></i> 数据大小: <span id="dataSizeBadge">0 KB</span></span></div>
+            </div>
+            <div style="margin-top: 18px; background: #f4faff; border-radius: 28px; padding: 12px 20px; border: 1px solid #e2effa;">
+                <i class="fas fa-info-circle" style="color: #2b7be4;"></i> <span style="font-size: 0.85rem; color: #1d4570;">导入/导出基于标准JSON，兼容哈希链结构。导出文件可用于法律证据备份。</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="globalLoading" class="loading-overlay">
+        <div class="loading-spinner"><i class="fas fa-spinner fa-pulse"></i> 处理中...</div>
+    </div>
+
+    <script>
+        let CURRENT_USER_ID = null;
+        let dbInstance = null;
+        let allMessagesCache = [];
+
+        
+        function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, function (m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+
+        function getUserIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const uid = urlParams.get('userId');
+            return (uid && uid.trim()) ? uid.trim() : null;
+        }
+
+        function getUserId() {
+            if (CURRENT_USER_ID) return CURRENT_USER_ID;
+            let uid = getUserIdFromUrl();
+            if (uid) { CURRENT_USER_ID = uid; return uid; }
+            return CURRENT_USER_ID;
+        }
+
+       
+        function calcDataSize(messages) {
+            if (!messages || messages.length === 0) return 0;
+            try {
+                const json = JSON.stringify(messages);
+                return new Blob([json]).size;
+            } catch { return 0; }
+        }
+
+        function formatSize(bytes) {
+            if (bytes === 0) return '0 KB';
+            const kb = bytes / 1024;
+            if (kb < 1024) return kb.toFixed(1) + ' KB';
+            return (kb / 1024).toFixed(2) + ' MB';
+        }
+
+     
+        function showCustomDialog(options) {
+            return new Promise((resolve) => {
+                const config = {
+                    title: options.title || '提示',
+                    content: options.content || '',
+                    confirmText: options.confirmText || '确定',
+                    cancelText: options.cancelText || '取消',
+                    showCancel: options.showCancel !== undefined ? options.showCancel : false,
+                    onConfirm: options.onConfirm || (() => {}),
+                    onCancel: options.onCancel || (() => {})
+                };
+                const existingMask = document.querySelector('.custom-dialog-mask');
+                if (existingMask) existingMask.remove();
+
+                const mask = document.createElement('div');
+                mask.className = 'custom-dialog-mask';
+                let buttonsHtml = '';
+                if (config.showCancel) {
+                    buttonsHtml += `<button class="custom-dialog-btn" data-action="cancel">${config.cancelText}</button>`;
+                }
+                buttonsHtml += `<button class="custom-dialog-btn custom-dialog-btn-primary" data-action="confirm">${config.confirmText}</button>`;
+
+                mask.innerHTML = `
+                <div class="custom-dialog-box">
+                    <div class="custom-dialog-header">
+                        <span>${escapeHtml(config.title)}</span>
+                        <span class="custom-dialog-close"><i class="fas fa-times"></i></span>
+                    </div>
+                    <div class="custom-dialog-body">${escapeHtml(config.content)}</div>
+                    <div class="custom-dialog-footer">
+                        ${buttonsHtml}
+                    </div>
+                </div>
+            `;
+                document.body.appendChild(mask);
+                const closeBtn = mask.querySelector('.custom-dialog-close');
+                const confirmBtn = mask.querySelector('[data-action="confirm"]');
+                const cancelBtn = mask.querySelector('[data-action="cancel"]');
+                const destroy = () => { mask.remove(); resolve(); };
+                if (closeBtn) closeBtn.addEventListener('click', () => { config.onCancel(); destroy(); });
+                if (confirmBtn) confirmBtn.addEventListener('click', () => { config.onConfirm(); destroy(); });
+                if (cancelBtn) cancelBtn.addEventListener('click', () => { config.onCancel(); destroy(); });
+                mask.addEventListener('click', (e) => { if (e.target === mask) { config.onCancel(); destroy(); } });
+            });
+        }
+
+        function customAlert(content, title = '提示') {
+            return showCustomDialog({ title, content, showCancel: false, confirmText: '知道了' });
+        }
+
+        
+        async function initIndexedDBForUser(userId) {
+            if (!userId) throw new Error('ID无效');
+            const dbName = `ChatDB_${userId}`;
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(dbName, 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('messages')) {
+                        const store = db.createObjectStore('messages', { keyPath: 'messageId' });
+                        store.createIndex('conversationId', 'conversationId', { unique: false });
+                        store.createIndex('sendTime', 'sendTime', { unique: false });
+                        store.createIndex('messageType', 'messageType', { unique: false });
+                    }
+                    if (!db.objectStoreNames.contains('conversations')) {
+                        db.createObjectStore('conversations', { keyPath: 'conversationId' });
+                    }
+                };
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(new Error(`IndexedDB open failed: ${e.target.error?.message}`));
+            });
+        }
+
+        async function fetchAllMessagesFromDB() {
+            if (!dbInstance) {
+                const uid = getUserId();
+                if (!uid) throw new Error('未检测到用户ID');
+                dbInstance = await initIndexedDBForUser(uid);
+            }
+            return new Promise((resolve, reject) => {
+                const tx = dbInstance.transaction('messages', 'readonly');
+                const store = tx.objectStore('messages');
+                const request = store.getAll();
+                request.onsuccess = () => {
+                    let messages = request.result || [];
+                    messages.sort((a, b) => (a.sendTime || 0) - (b.sendTime || 0));
+                    resolve(messages);
+                };
+                request.onerror = (e) => reject(new Error(`读取消息失败: ${e.target.error?.message}`));
+            });
+        }
+
+        async function clearAllMessagesFromDB() {
+            if (!dbInstance) {
+                const uid = getUserId();
+                dbInstance = await initIndexedDBForUser(uid);
+            }
+            return new Promise((resolve, reject) => {
+                const tx = dbInstance.transaction('messages', 'readwrite');
+                const store = tx.objectStore('messages');
+                const clearReq = store.clear();
+                clearReq.onsuccess = () => resolve();
+                clearReq.onerror = (e) => reject(e.target.error);
+                tx.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function batchPutMessages(messages) {
+            if (!dbInstance) {
+                const uid = getUserId();
+                dbInstance = await initIndexedDBForUser(uid);
+            }
+            return new Promise((resolve, reject) => {
+                const tx = dbInstance.transaction('messages', 'readwrite');
+                const store = tx.objectStore('messages');
+                for (const msg of messages) store.put(msg);
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        
+        function analyzeMessages(messages) {
+            let total = messages.length, text = 0, image = 0, file = 0, call = 0, other = 0;
+            let conversationsSet = new Set();
+            let firstTime = null, lastTime = null;
+            for (const msg of messages) {
+                if (msg.conversationId) conversationsSet.add(msg.conversationId);
+                const ts = msg.sendTime;
+                if (ts && !isNaN(ts)) {
+                    if (!firstTime || ts < firstTime) firstTime = ts;
+                    if (!lastTime || ts > lastTime) lastTime = ts;
+                }
+                const type = msg.messageType;
+                if (type === 'text') text++;
+                else if (type === 'image') image++;
+                else if (type === 'file') file++;
+                else if (type === 'call') call++;
+                else other++;
+            }
+            const recentMessages = [...messages].reverse().slice(0, 20);
+            const previews = recentMessages.map(msg => {
+                let sender = msg.isSelf ? '我' : (msg.senderName || msg.senderId || '对方');
+                let contentPreview = '';
+                if (msg.messageType === 'text') contentPreview = (msg.content?.text || msg.text || '').substring(0, 40);
+                else if (msg.messageType === 'image') contentPreview = '[图片]';
+                else if (msg.messageType === 'file') contentPreview = `[文件] ${msg.content?.fileName || '附件'}`;
+                else if (msg.messageType === 'quote') contentPreview = `[引用] ${(msg.content?.text || '').substring(0, 30)}`;
+                else if (msg.messageType === 'call') contentPreview = `[${msg.content?.callType === 'video' ? '视频通话' : '语音通话'}]`;
+                else if (msg.messageType === 'system') contentPreview = `[系统] ${msg.content?.systemText || ''}`;
+                else contentPreview = `[${msg.messageType}]`;
+                if (!contentPreview) contentPreview = '无内容';
+                return {
+                    time: msg.sendTime ? new Date(msg.sendTime).toLocaleString('zh-CN') : '未知',
+                    sender: sender,
+                    type: msg.messageType,
+                    preview: contentPreview.length > 45 ? contentPreview.slice(0, 45) + '…' : contentPreview
+                };
+            });
+            return { total, text, image, file, call, other, conversationCount: conversationsSet.size, firstTime, lastTime, previews };
+        }
+
+        let pieChartInstance = null;
+        function drawPieChart(text, image, file, call, other) {
+            const ctx = document.getElementById('typePieChart').getContext('2d');
+            if (pieChartInstance) pieChartInstance.destroy();
+            const total = text + image + file + call + other;
+            if (total === 0) {
+                pieChartInstance = new Chart(ctx, { type: 'pie', data: { labels: ['暂无数据'], datasets: [{ data: [1], backgroundColor: ['#d9e2ed'] }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } } });
+                document.getElementById('pieLegend').innerHTML = '<div style="color:#7b97b5;">暂无消息</div>';
+                return;
+            }
+            pieChartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: { labels: ['文本', '图片', '文件', '通话', '其他'], datasets: [{ data: [text, image, file, call, other], backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } }, tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw} 条 (${((ctx.raw / total) * 100).toFixed(1)}%)` } } } }
+            });
+            const legendDiv = document.getElementById('pieLegend');
+            if (legendDiv) legendDiv.innerHTML = `<div><span class="legend-color" style="background:#3b82f6;"></span> 文本 ${text}</div><div><span class="legend-color" style="background:#10b981;"></span> 图片 ${image}</div><div><span class="legend-color" style="background:#f59e0b;"></span> 文件 ${file}</div><div><span class="legend-color" style="background:#8b5cf6;"></span> 通话 ${call}</div><div><span class="legend-color" style="background:#ef4444;"></span> 其他 ${other}</div>`;
+        }
+
+       
+        function renderDashboard(analysis) {
+            document.getElementById('totalMessages').innerText = analysis.total;
+            document.getElementById('textCount').innerText = analysis.text;
+            document.getElementById('imageCount').innerText = analysis.image;
+            document.getElementById('fileCount').innerText = analysis.file;
+            document.getElementById('callCount').innerText = analysis.call;
+            document.getElementById('otherCount').innerText = analysis.other;
+            document.getElementById('convCount').innerText = analysis.conversationCount;
+            document.getElementById('firstMsgTime').innerText = analysis.firstTime ? new Date(analysis.firstTime).toLocaleString('zh-CN') : '—';
+            document.getElementById('lastMsgTime').innerText = analysis.lastTime ? new Date(analysis.lastTime).toLocaleString('zh-CN') : '—';
+
+            const hasHash = allMessagesCache.some(m => m.chain_hash);
+            document.getElementById('hashValidStatus').innerHTML = hasHash ? '<i class="fas fa-check-circle" style="color:#16a34a;"></i> 含哈希链' : '<i class="fas fa-info-circle"></i> 无哈希指纹';
+
+            const tbody = document.getElementById('previewTbody');
+            if (analysis.previews.length === 0) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 24px 0;">暂无消息</td></tr>';
+            else tbody.innerHTML = analysis.previews.map(p => `<tr><td style="white-space:nowrap;">${escapeHtml(p.time)}</td><td>${escapeHtml(p.sender)}</td><td><span class="badge">${escapeHtml(p.type)}</span></td><td>${escapeHtml(p.preview)}</td></tr>`).join('');
+            drawPieChart(analysis.text, analysis.image, analysis.file, analysis.call, analysis.other);
+            const sizeBytes = calcDataSize(allMessagesCache);
+            const sizeStr = formatSize(sizeBytes);
+            document.getElementById('dataSizeDisplay').innerText = sizeStr;
+            document.getElementById('dataSizeBadge').innerText = sizeStr;
+        }
+
+        function showLoading(show) { const el = document.getElementById('globalLoading'); if (el) el.style.visibility = show ? 'visible' : 'hidden'; }
+        async function refreshDataFromDB() {
+            showLoading(true);
+            try {
+                const userId = getUserId();
+                if (!userId) { renderDashboard({ total: 0, text: 0, image: 0, file: 0, call: 0, other: 0, conversationCount: 0, firstTime: null, lastTime: null, previews: [] }); return; }
+                if (!dbInstance) dbInstance = await initIndexedDBForUser(userId);
+                const msgs = await fetchAllMessagesFromDB();
+                allMessagesCache = msgs;
+                if (msgs.length === 0) {
+                    renderDashboard({ total: 0, text: 0, image: 0, file: 0, call: 0, other: 0, conversationCount: 0, firstTime: null, lastTime: null, previews: [] });
+                    return;
+                }
+                const analysis = analyzeMessages(msgs);
+                renderDashboard(analysis);
+            } catch (err) {
+                console.error(err);
+                renderDashboard({ total: 0, text: 0, image: 0, file: 0, call: 0, other: 0, conversationCount: 0, firstTime: null, lastTime: null, previews: [] });
+                await customAlert(`加载失败: ${err.message}`, '错误');
+            } finally { showLoading(false); }
+        }
+        async function exportAllMessagesToJSON() {
+            if (!allMessagesCache.length) { await customAlert('暂无消息可导出', '提示'); return; }
+            const exportData = { exportTime: new Date().toISOString(), totalMessages: allMessagesCache.length, messages: allMessagesCache, metadata: { userId: getUserId(), note: '导出自聊天分析面板' } };
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chat_export_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            await customAlert(`导出成功！共 ${allMessagesCache.length} 条`, '完成');
+        }
+        async function importMessagesFromJSON(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        let parsed = JSON.parse(e.target.result);
+                        let messagesArray = null;
+                        if (Array.isArray(parsed)) messagesArray = parsed;
+                        else if (parsed.messages && Array.isArray(parsed.messages)) messagesArray = parsed.messages;
+                        else if (parsed.chatHistory && Array.isArray(parsed.chatHistory)) {
+                            messagesArray = parsed.chatHistory.map(item => ({ messageId: item.hash || `import_${Date.now()}_${Math.random()}`, sendTime: new Date(item.time).getTime(), senderId: item.senderId || 'unknown', content: { text: item.content }, messageType: 'text', isSelf: item.sender === '我', chain_hash: item.hash, chain_prev_hash: item.prevHash }));
+                        } else if (parsed.data && Array.isArray(parsed.data)) messagesArray = parsed.data;
+                        if (!messagesArray || messagesArray.length === 0) throw new Error('未找到消息列表');
+                        const validated = messagesArray.map(msg => ({
+                            messageId: msg.messageId || `import_${Date.now()}_${Math.random()}_${Math.random()}`,
+                            sendTime: msg.sendTime || msg.timestamp || Date.now(),
+                            messageType: msg.messageType || 'text',
+                            content: msg.content || { text: msg.text || '无内容' },
+                            isSelf: msg.isSelf === undefined ? false : msg.isSelf,
+                            senderId: msg.senderId || (msg.isSelf ? 'me' : 'other'),
+                            conversationId: msg.conversationId || 'default_conv',
+                            ...(msg.chain_hash && { chain_hash: msg.chain_hash }),
+                            ...(msg.chain_prev_hash && { chain_prev_hash: msg.chain_prev_hash })
+                        }));
+                        const uid = getUserId();
+                        if (!uid) throw new Error('未检测到用户ID');
+                        if (!dbInstance) dbInstance = await initIndexedDBForUser(uid);
+                        await clearAllMessagesFromDB();
+                        await batchPutMessages(validated);
+                        await refreshDataFromDB();
+                        await customAlert(`导入成功！共 ${validated.length} 条`, '完成');
+                        resolve();
+                    } catch (err) { reject(err); }
+                };
+                reader.onerror = () => reject(new Error('文件读取失败'));
+                reader.readAsText(file);
+            });
+        }
+        function bindImportExport() {
+            document.getElementById('importMessagesBtn')?.addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'application/json';
+                input.onchange = async (ev) => {
+                    const file = ev.target.files[0];
+                    if (!file) return;
+                    showLoading(true);
+                    try {
+                        await importMessagesFromJSON(file);
+                    } catch (err) {
+                        await customAlert(`导入失败: ${err.message}`, '错误');
+                    } finally { showLoading(false); }
+                };
+                input.click();
+            });
+            document.getElementById('exportAllMessagesBtn')?.addEventListener('click', () => exportAllMessagesToJSON().catch(e => customAlert(e.message, '错误')));
+        }
+        (async function init() {
+            bindImportExport();
+            const uid = getUserId();
+            if (uid) {
+                await refreshDataFromDB();
+            } else {
+                renderDashboard({ total: 0, text: 0, image: 0, file: 0, call: 0, other: 0, conversationCount: 0, firstTime: null, lastTime: null, previews: [] });
+                await customAlert('未获取到用户ID，功能受限', '提示');
+            }
+        })();
+    </script>
+</body>
+
+</html>

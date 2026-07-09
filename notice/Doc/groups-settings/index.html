@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>群脚本引擎开发文档 | GSTE DOCX</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --bg-code: #0d1117;
+            --text-primary: #e6e6e6;
+            --text-secondary: #a0a0b0;
+            --text-muted: #6b7280;
+            --accent-cyan: #00d4aa;
+            --accent-purple: #8b5cf6;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --border-color: #2a2a3a;
+            --shadow-glow: 0 0 20px rgba(0, 212, 170, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 212, 170, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 170, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+            animation: rotate 60s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-cyan);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-cyan);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+
+        .hero {
+            padding: 12rem 0 6rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-cyan) 50%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .version-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            color: var(--accent-cyan);
+            font-family: 'Fira Code', monospace;
+        }
+
+
+        .doc-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 100px;
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+            padding-right: 1rem;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 2px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .sidebar-links {
+            list-style: none;
+        }
+
+        .sidebar-links li {
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-links a {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border-left: 2px solid transparent;
+        }
+
+        .sidebar-links a:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-left-color: var(--accent-cyan);
+        }
+
+
+        .main-content {
+            padding-bottom: 6rem;
+        }
+
+        section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 100px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        h2::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 1.5rem;
+            background: linear-gradient(180deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem;
+            color: var(--text-primary);
+        }
+
+        h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-cyan);
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+
+        pre {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        pre::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 0.75rem;
+            right: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-family: 'Fira Code', monospace;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre code {
+            color: #e6e6e6;
+            line-height: 1.6;
+        }
+
+        code:not(pre code) {
+            background: var(--bg-tertiary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            color: var(--accent-cyan);
+            font-size: 0.85em;
+        }
+
+
+        .keyword {
+            color: #ff7b72;
+        }
+
+        .string {
+            color: #a5d6ff;
+        }
+
+        .function {
+            color: #d2a8ff;
+        }
+
+        .comment {
+            color: #8b949e;
+        }
+
+        .number {
+            color: #79c0ff;
+        }
+
+        .operator {
+            color: #ff7b72;
+        }
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tr:hover {
+            background: rgba(0, 212, 170, 0.05);
+        }
+
+
+        .alert {
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--accent-orange);
+            color: #fbbf24;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--accent-red);
+            color: #f87171;
+        }
+
+        .alert-info {
+            background: rgba(0, 212, 170, 0.1);
+            border-color: var(--accent-cyan);
+            color: #34d399;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .card h4 {
+            margin-top: 0;
+            color: var(--accent-cyan);
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-right: 0.5rem;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .tag-async {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--accent-purple);
+        }
+
+        .tag-event {
+            background: rgba(0, 212, 170, 0.2);
+            color: var(--accent-cyan);
+        }
+
+
+        .example {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+        }
+
+        .example-header {
+            background: var(--bg-tertiary);
+            padding: 0.75rem 1.25rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .example-content {
+            padding: 1.25rem;
+        }
+
+
+        ul,
+        ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+
+        .api-method {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .api-signature {
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            color: var(--accent-cyan);
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .api-params {
+            margin: 1rem 0;
+        }
+
+        .api-returns {
+            color: var(--accent-purple);
+            font-weight: 500;
+        }
+
+
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+
+        @media (max-width: 1024px) {
+            .doc-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+
+        ::selection {
+            background: rgba(0, 212, 170, 0.3);
+            color: var(--text-primary);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-cyan);
+            border-radius: 8px;
+        }
+    </style>
+    <base target="_blank">
+</head>
+
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+
+    <nav>
+        <div class="container nav-content">
+            <div class="logo">GroupInner Engine</div>
+            <ul class="nav-links">
+                <li><a href="#quickstart">快速开始</a></li>
+                <li><a href="#api">API 参考</a></li>
+                <li><a href="#examples">示例</a></li>
+                <li><a href="#security">安全规范</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="container">
+            <h1>GSTE</h1>
+            <p>安全、高效的群聊脚本开发框架。提供完整的生命周期管理和沙箱隔离机制。</p>
+            <span class="version-badge">v1.1.0-security-hardened</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="doc-layout">
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">入门指南</div>
+                    <ul class="sidebar-links">
+                        <li><a href="#intro">简介</a></li>
+                        <li><a href="#quickstart">快速开始</a></li>
+                        <li><a href="#lifecycle">生命周期</a></li>
+                        <li><a href="#context">上下文对象</a></li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-title">API 参考</div>
+                    <ul class="sidebar-links">
+                        <li><a href="#api-messaging">消息相关</a></li>
+                        <li><a href="#api-group">群组信息</a></li>
+                        <li><a href="#api-storage">变量存储</a></li>
+                        <li><a href="#api-utils">工具函数</a></li>
+                        <li><a href="#api-string">字符串扩展</a></li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-title">高级主题</div>
+                    <ul class="sidebar-links">
+                        <li><a href="#security">安全限制</a></li>
+                        <li><a href="#limits">资源限制</a></li>
+                        <li><a href="#examples">完整示例</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <main class="main-content">
+
+                <section id="intro">
+                    <h2>简介</h2>
+                    <p>群脚本引擎（GSTE）是一个为即时通讯群组设计的脚本执行环境。它允许开发者在安全的沙箱中编写自定义逻辑，实现自动回复、消息过滤、群管功能等。</p>
+                    <div class="card-grid">
+                        <div class="card">
+                            <h4>🔒 安全沙箱</h4>
+                            <p>完全隔离的执行环境，禁止访问 DOM、网络请求等危险 API，防止恶意代码执行。</p>
+                        </div>
+                        <div class="card">
+                            <h4>⚡ 事件驱动</h4>
+                            <p>基于生命周期的编程模型，支持进入群聊、发送消息、接收消息三种事件钩子。</p>
+                        </div>
+                        <div class="card">
+                            <h4>🛠️ 丰富 API</h4>
+                            <p>提供消息发送、群信息获取、变量存储、延迟执行等实用功能，满足大部分群管需求。</p>
+                        </div>
+                        <div class="card">
+                            <h4>📏 资源管控</h4>
+                            <p>内置代码长度、执行时间、嵌套深度等多重限制，确保系统稳定性。</p>
+                        </div>
+                    </div>
+                </section>
+
+
+                <section id="quickstart">
+                    <h2>快速开始</h2>
+                    <p>一个最简单的群脚本只需要导出一个事件处理函数。以下是一个自动欢迎新成员的示例：</p>
+
+                    <div class="example">
+                        <div class="example-header">📄 基础示例：自动欢迎</div>
+                        <div class="example-content">
+                            <pre data-lang="javascript"><code><span class="comment">// 当用户进入群聊时触发</span>
+<span class="keyword">function</span> <span class="function">onEnter</span>(event) {
+    <span class="comment">// 发送欢迎消息</span>
+    <span class="function">sendGroupMessage</span>(<span class="string">"欢迎加入本群！请遵守群规~"</span>);
+
+    <span class="comment">// 显示系统提示（仅自己可见）</span>
+    <span class="function">WSystemMsg</span>(<span class="string">"新成员已进入"</span>);
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <h3>脚本结构</h3>
+                    <p>群脚本通过导出特定名称的函数来响应不同事件。引擎会自动识别并调用这些函数：</p>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>函数名</th>
+                                <th>触发时机</th>
+                                <th>返回值</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>onEnter</code></td>
+                                <td>用户切换到该群聊窗口时</td>
+                                <td>无</td>
+                            </tr>
+                            <tr>
+                                <td><code>onSend</code></td>
+                                <td>用户在该群发送消息前</td>
+                                <td><code>false</code> 阻止发送</td>
+                            </tr>
+                            <tr>
+                                <td><code>onMessage</code></td>
+                                <td>接收到新消息时</td>
+                                <td>无</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+
+                <section id="lifecycle">
+                    <h2>生命周期</h2>
+
+                    <h3>onEnter - 进入群聊</h3>
+                    <p>当用户打开群聊窗口时触发，适合初始化群相关数据或发送欢迎信息。</p>
+
+                    <pre data-lang="javascript"><code><span class="keyword">function</span> <span class="function">onEnter</span>(event) {
+    <span class="comment">// event.contact 包含群基本信息</span>
+    <span class="keyword">const</span> group = <span class="function">getCurrentGroup</span>();
+    <span class="function">log</span>(<span class="string">"进入群聊:"</span>, group.groupName);
+
+    <span class="comment">// 读取之前保存的变量</span>
+    <span class="keyword">const</span> count = <span class="function">getVariable</span>(<span class="string">"visitCount"</span>) || <span class="number">0</span>;
+    <span class="function">setVariable</span>(<span class="string">"visitCount"</span>, count + <span class="number">1</span>);
+}</code></pre>
+
+                    <h3>onSend - 发送消息前拦截</h3>
+                    <p>在消息实际发送前触发，可用于内容审核、自动修正或阻止发送。</p>
+
+                    <pre data-lang="javascript"><code><span class="keyword">function</span> <span class="function">onSend</span>(event) {
+    <span class="comment">// event.content 是消息文本</span>
+    <span class="keyword">const</span> text = event.content;
+
+    <span class="comment">// 检查敏感词</span>
+    <span class="keyword">if</span> (text.<span class="function">includes</span>(<span class="string">"广告"</span>)) {
+        <span class="function">infomsg</span>(<span class="string">"消息包含敏感词，已阻止发送"</span>);
+        <span class="keyword">return</span> <span class="keyword">false</span>; <span class="comment">// 阻止发送</span>
+    }
+
+    <span class="comment">// 自动追加签名</span>
+    <span class="keyword">if</span> (!text.<span class="function">endsWith</span>(<span class="string">"[自动发送]"</span>)) {
+        event.rawMessage.text += <span class="string">" [自动发送]"</span>;
+    }
+}</code></pre>
+
+                    <h3>onMessage - 接收消息</h3>
+                    <p>当群内有新消息时触发（包括自己发送的消息），可用于自动回复或消息记录。</p>
+
+                    <pre data-lang="javascript"><code><span class="keyword">function</span> <span class="function">onMessage</span>(event) {
+    <span class="comment">// 简单的关键词回复</span>
+    <span class="keyword">if</span> (event.content === <span class="string">"帮助"</span>) {
+        <span class="function">sendGroupMessage</span>(<span class="string">"可用命令：帮助、状态、规则"</span>);
+    }
+
+    <span class="comment">// 管理员命令</span>
+    <span class="keyword">if</span> (event.content.<span class="function">startsWith</span>(<span class="string">"/"</span>) && event.sender.isAdmin) {
+        <span class="function">handleAdminCommand</span>(event.content);
+    }
+}</code></pre>
+                </section>
+
+
+                <section id="context">
+                    <h2>上下文对象</h2>
+                    <p>每个事件处理函数都会接收一个 <code>event</code> 对象，包含当前事件的详细信息：</p>
+
+                    <h3>事件对象结构</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>属性</th>
+                                <th>类型</th>
+                                <th>说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>$event</code></td>
+                                <td>Object</td>
+                                <td>原始事件数据（各事件不同）</td>
+                            </tr>
+                            <tr>
+                                <td><code>$utils</code></td>
+                                <td>Object</td>
+                                <td>工具函数集合</td>
+                            </tr>
+                            <tr>
+                                <td><code>$contact</code></td>
+                                <td>Object</td>
+                                <td>当前联系人/群信息</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>onSend 事件对象</h3>
+                    <pre data-lang="javascript"><code>{
+    content: <span class="string">"消息文本内容"</span>,           <span class="comment">// 消息文本</span>
+    messageType: <span class="string">"text"</span>,              <span class="comment">// 消息类型</span>
+    timestamp: <span class="number">1711882800000</span>,         <span class="comment">// 时间戳</span>
+    sender: {
+        userId: <span class="string">"user_123"</span>,
+        name: <span class="string">"用户名"</span>
+    },
+    rawMessage: { ... }               <span class="comment">// 原始消息对象，可修改</span>
+}</code></pre>
+                </section>
+
+
+                <section id="api-messaging">
+                    <h2>API 参考：消息相关</h2>
+
+                    <div class="api-method">
+                        <div class="api-signature">sendGroupMessage(content)</div>
+                        <p>向当前群聊发送文本消息。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>content</code> <span class="tag">string</span> - 消息内容，最大 500 字符</li>
+                            </ul>
+                        </div>
+                        <p class="api-returns">返回：无</p>
+                        <div class="alert alert-warning">
+                            <div class="alert-title">⚠️ 注意</div>
+                            消息内容会自动过滤敏感信息（URL、电话号码、危险代码等）。
+                        </div>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">WSystemMsg(msg)</div>
+                        <p>发送系统消息到当前会话（仅自己可见）。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>msg</code> <span class="tag">string</span> - 系统消息内容，最大 500 字符</li>
+                            </ul>
+                        </div>
+                        <p class="api-returns">返回：<span class="tag">Promise&lt;boolean&gt;</span> 是否发送成功</p>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">infomsg(msg)</div>
+                        <p>显示提示信息（弹窗形式）。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>msg</code> <span class="tag">string</span> - 提示内容，最大 200 字符</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="api-method">
+                        <div class="api-signature">psmute(time,reason)</div>
+                        <p>禁言群用户</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>time</code> <span class="tag">number</span> - 禁言时长(单位秒)最长禁言30天</li>
+                                <li><code>reason</code> <span class="tag">string</span> - 禁言理由，最大50字符 </li>
+                            </ul>
+                        </div>
+                        
+                    </div>
+                    <div class="api-method">
+                        <div class="api-signature">log(...args)<br>warn(...args)<br>error(...args)</div>
+                        <p>控制台输出方法，自动添加 <code>[群脚本]</code> 前缀。</p>
+                        <pre data-lang="javascript"><code><span class="function">log</span>(<span class="string">"调试信息"</span>, someVariable);
+<span class="function">warn</span>(<span class="string">"警告信息"</span>);
+<span class="function">error</span>(<span class="string">"错误信息"</span>);</code></pre>
+                    </div>
+                </section>
+
+
+                <section id="api-group">
+                    <h2>API 参考：群组信息</h2>
+
+                    <div class="api-method">
+                        <div class="api-signature">getCurrentGroup()</div>
+                        <p>获取当前群聊的详细信息。</p>
+                        <p class="api-returns">返回：<span class="tag">Object | null</span></p>
+                        <pre data-lang="javascript"><code>{
+    groupId: <span class="string">"12345"</span>,           <span class="comment">// 群ID</span>
+    groupName: <span class="string">"技术交流群"</span>,    <span class="comment">// 群名称</span>
+    groupDesc: <span class="string">"群描述..."</span>,   <span class="comment">// 群描述</span>
+    memberCount: <span class="number">128</span>,          <span class="comment">// 成员数量</span>
+    isAdmin: <span class="keyword">true</span>,              <span class="comment">// 当前用户是否为管理员</span>
+    isOwner: <span class="keyword">false</span>             <span class="comment">// 当前用户是否为群主</span>
+}</code></pre>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">getCurrentUser()</div>
+                        <p>获取当前登录用户的信息。</p>
+                        <p class="api-returns">返回：<span class="tag">Object</span></p>
+                        <pre data-lang="javascript"><code>{
+    userId: <span class="string">"user_123"</span>,
+    name: <span class="string">"我的昵称"</span>,
+    isAdmin: <span class="keyword">true</span>,
+    isOwner: <span class="keyword">false</span>
+}</code></pre>
+                    </div>
+                </section>
+
+
+                <section id="api-storage">
+                    <h2>API 参考：变量存储</h2>
+                    <p>脚本引擎提供键值对存储功能，数据按群隔离，重启后清空（内存存储）。</p>
+
+                    <div class="api-method">
+                        <div class="api-signature">setVariable(key, value)</div>
+                        <p>存储变量（仅当前群有效）。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>key</code> <span class="tag">string</span> - 变量名，最大 100 字符，仅允许字母数字下划线</li>
+                                <li><code>value</code> <span class="tag">any</span> - 变量值，序列化后最大 10KB</li>
+                            </ul>
+                        </div>
+                        <div class="alert alert-danger">
+                            <div class="alert-title">🚫 安全限制</div>
+                            变量值会被扫描危险内容，包含危险代码的变量将被拒绝存储。
+                        </div>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">getVariable(key)</div>
+                        <p>读取变量（返回深拷贝）。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>key</code> <span class="tag">string</span> - 变量名</li>
+                            </ul>
+                        </div>
+                        <p class="api-returns">返回：<span class="tag">any | undefined</span></p>
+                    </div>
+
+                    <div class="example">
+                        <div class="example-header">💡 使用示例：计数器</div>
+                        <div class="example-content">
+                            <pre data-lang="javascript"><code><span class="keyword">function</span> <span class="function">onMessage</span>(event) {
+    <span class="comment">// 获取当前计数</span>
+    <span class="keyword">let</span> count = <span class="function">getVariable</span>(<span class="string">"msgCount"</span>) || <span class="number">0</span>;
+    count++;
+
+    <span class="comment">// 每10条消息提醒一次</span>
+    <span class="keyword">if</span> (count % <span class="number">10</span> === <span class="number">0</span>) {
+        <span class="function">sendGroupMessage</span>(<span class="string">`已接收 ${count} 条消息！`</span>);
+    }
+
+    <span class="comment">// 保存计数</span>
+    <span class="function">setVariable</span>(<span class="string">"msgCount"</span>, count);
+}</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+
+                <section id="api-utils">
+                    <h2>API 参考：工具函数</h2>
+
+                    <div class="api-method">
+                        <div class="api-signature">delay(ms) <span class="tag tag-async">async</span></div>
+                        <p>延迟执行，返回 Promise。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>ms</code> <span class="tag">number</span> - 延迟毫秒数，最大 30000ms（30秒）</li>
+                            </ul>
+                        </div>
+                        <pre data-lang="javascript"><code><span class="keyword">async function</span> <span class="function">onEnter</span>(event) {
+    <span class="keyword">await</span> <span class="function">delay</span>(<span class="number">1000</span>);  <span class="comment">// 等待1秒</span>
+    <span class="function">sendGroupMessage</span>(<span class="string">"延迟发送的消息"</span>);
+}</code></pre>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">timeNow()</div>
+                        <p>获取当前时间戳（毫秒）。</p>
+                        <p class="api-returns">返回：<span class="tag">number</span></p>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">randomGet(min, max)</div>
+                        <p>生成随机数（包含小数）。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>min</code> <span class="tag">number</span> - 最小值，默认 0，最大 1000000</li>
+                                <li><code>max</code> <span class="tag">number</span> - 最大值，默认 1，最大 1000000</li>
+                            </ul>
+                        </div>
+                        <p class="api-returns">返回：<span class="tag">number</span> min 到 max 之间的随机数</p>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">SubString(str, start, end)</div>
+                        <p>安全截取字符串（自动处理边界）。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>str</code> <span class="tag">string</span> - 原字符串</li>
+                                <li><code>start</code> <span class="tag">number</span> - 开始索引</li>
+                                <li><code>end</code> <span class="tag">number</span> - 结束索引（可选，默认字符串长度，最大 500）</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">Slicetion(arr, start, end)</div>
+                        <p>安全截取数组。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>arr</code> <span class="tag">Array</span> - 原数组</li>
+                                <li><code>start</code> <span class="tag">number</span> - 开始索引</li>
+                                <li><code>end</code> <span class="tag">number</span> - 结束索引（可选，默认数组长度，最大 100）</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+
+                <section id="api-string">
+                    <h2>API 参考：字符串扩展</h2>
+                    <p>引擎为 String 原型添加了安全检查的方法：</p>
+
+                    <div class="api-method">
+                        <div class="api-signature">String.prototype.checkIfrom(keywordList)</div>
+                        <p>检查字符串是否包含指定关键词（安全版本）。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>keywordList</code> <span class="tag">string | Array</span> - 关键词或关键词数组</li>
+                            </ul>
+                        </div>
+                        <p class="api-returns">返回：<span class="tag">boolean</span> 是否包含任一关键词</p>
+                        <pre data-lang="javascript"><code><span class="keyword">const</span> text = <span class="string">"这是一段测试文本"</span>;
+
+<span class="comment">// 检查单个关键词</span>
+<span class="keyword">if</span> (text.<span class="function">checkIfrom</span>(<span class="string">"测试"</span>)) {
+    <span class="function">log</span>(<span class="string">"包含关键词"</span>);
+}
+
+<span class="comment">// 检查多个关键词</span>
+<span class="keyword">const</span> keywords = [<span class="string">"广告"</span>, <span class="string">"推广"</span>, <span class="string">"spam"</span>];
+<span class="keyword">if</span> (text.<span class="function">checkIfrom</span>(keywords)) {
+    <span class="function">infomsg</span>(<span class="string">"检测到敏感内容"</span>);
+}</code></pre>
+                    </div>
+                </section>
+                <section id="api-regex">
+                    <h2>API 参考：正则匹配</h2>
+
+                    <div class="api-method">
+                        <div class="api-signature">RegexUxs.run(pattern, text, flags)</div>
+                        <p>安全执行正则表达式测试。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>pattern</code> <span class="tag">string</span> - 正则表达式模式，最大 100 字符</li>
+                                <li><code>text</code> <span class="tag">string</span> - 待测试文本，最大 500 字符</li>
+                                <li><code>flags</code> <span class="tag">string</span> - 标志位，默认 "i"（不区分大小写）</li>
+                            </ul>
+                        </div>
+                        <p class="api-returns">返回：<span class="tag">boolean</span> 是否匹配成功</p>
+                        <pre data-lang="javascript"><code><span class="keyword">if</span> (<span class="function">RegexUxs.run</span>(<span class="string">"^帮助$"</span>, event.content)) {
+    <span class="function">sendGroupMessage</span>(<span class="string">"可用命令：帮助、状态"</span>);
+}</code></pre>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">RegexUxs.check(pattern, text)</div>
+                        <p>安全执行正则表达式匹配，返回匹配结果数组。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>pattern</code> <span class="tag">string</span> - 正则表达式模式，最大 100 字符</li>
+                                <li><code>text</code> <span class="tag">string</span> - 待匹配文本，最大 500 字符</li>
+                            </ul>
+                        </div>
+                        <p class="api-returns">返回：<span class="tag">Array | null</span> 匹配结果数组，最多返回 10 项</p>
+                        <pre data-lang="javascript"><code><span class="keyword">const</span> matches = <span class="function">RegexUxs.check</span>(<span class="string">"\\d+"</span>, event.content);
+<span class="keyword">if</span> (matches) {
+    <span class="function">sendGroupMessage</span>(<span class="string">`提取到数字: ${matches[0]}`</span>);
+}</code></pre>
+                    </div>
+                </section>
+
+                <section id="api-http">
+                    <h2>API 参考：HTTP 网络请求</h2>
+                    <div class="alert alert-warning">
+                        <div class="alert-title">⚠️ 网络请求限制</div>
+                        仅支持同源请求或已配置 CORS 的接口，所有请求会自动添加安全头验证。超时默认 10 秒，URL 仅允许 https 协议。
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">HttpNetServer.create()</div>
+                        <p>创建 XMLHttpRequest 实例。</p>
+                        <p class="api-returns">返回：<span class="tag">XMLHttpRequest</span></p>
+                        <pre
+                            data-lang="javascript"><code><span class="keyword">const</span> xhr = <span class="function">HttpNetServer.create</span>();</code></pre>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">HttpNetServer.open(xhr, method, url)</div>
+                        <p>初始化请求。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>xhr</code> <span class="tag">XMLHttpRequest</span> - 请求实例</li>
+                                <li><code>method</code> <span class="tag">string</span> - 请求方法 (GET/POST)</li>
+                                <li><code>url</code> <span class="tag">string</span> - 请求地址，仅允许 https 协议，最大 200 字符</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">HttpNetServer.setHeader(xhr, key, value)</div>
+                        <p>设置请求头。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>xhr</code> <span class="tag">XMLHttpRequest</span> - 请求实例</li>
+                                <li><code>key</code> <span class="tag">string</span> - 请求头名称</li>
+                                <li><code>value</code> <span class="tag">string</span> - 请求头值</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">HttpNetServer.send(xhr, body)</div>
+                        <p>发送请求。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>xhr</code> <span class="tag">XMLHttpRequest</span> - 请求实例</li>
+                                <li><code>body</code> <span class="tag">string | null</span> - 请求体（可选）</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">HttpNetServer.abort(xhr)</div>
+                        <p>中止请求。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>xhr</code> <span class="tag">XMLHttpRequest</span> - 请求实例</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">HttpNetServer.onState(xhr, callback)</div>
+                        <p>设置状态变化回调函数。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>xhr</code> <span class="tag">XMLHttpRequest</span> - 请求实例</li>
+                                <li><code>callback</code> <span class="tag">function</span> - 回调函数，当 readyState 变化时触发
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">HttpNetServer.getReadyState(xhr)</div>
+                        <p>获取当前请求状态。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>xhr</code> <span class="tag">XMLHttpRequest</span> - 请求实例</li>
+                            </ul>
+                        </div>
+                        <p class="api-returns">返回：<span class="tag">number</span> readyState 值 (0-4)</p>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">HttpNetServer.getStatus(xhr)</div>
+                        <p>获取 HTTP 状态码。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>xhr</code> <span class="tag">XMLHttpRequest</span> - 请求实例</li>
+                            </ul>
+                        </div>
+                        <p class="api-returns">返回：<span class="tag">number</span> HTTP 状态码 (如 200, 404)</p>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">HttpNetServer.getResponse(xhr)</div>
+                        <p>获取响应文本。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>xhr</code> <span class="tag">XMLHttpRequest</span> - 请求实例</li>
+                            </ul>
+                        </div>
+                        <p class="api-returns">返回：<span class="tag">string</span> 响应内容，最大 1MB</p>
+                    </div>
+
+                    <div class="api-method">
+                        <div class="api-signature">HttpNetServer.setTimeout(xhr, ms)</div>
+                        <p>设置请求超时时间。</p>
+                        <div class="api-params">
+                            <strong>参数：</strong>
+                            <ul>
+                                <li><code>xhr</code> <span class="tag">XMLHttpRequest</span> - 请求实例</li>
+                                <li><code>ms</code> <span class="tag">number</span> - 超时毫秒数，最大 10000ms (10秒)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="example">
+                        <div class="example-header">🌐 HTTP 请求完整示例：获取天气</div>
+                        <div class="example-content">
+                            <pre data-lang="javascript"><code><span class="keyword">function</span> <span class="function">onMessage</span>(event) {
+    <span class="keyword">if</span> (event.content.<span class="function">startsWith</span>(<span class="string">"天气"</span>)) {
+        <span class="keyword">const</span> city = event.content.<span class="function">slice</span>(<span class="number">2</span>).<span class="function">trim</span>();
+        <span class="keyword">if</span> (!city) {
+            <span class="function">sendGroupMessage</span>(<span class="string">"请指定城市，如：天气 北京"</span>);
+            <span class="keyword">return</span>;
+        }
+
+        <span class="keyword">const</span> xhr = <span class="function">HttpNetServer.create</span>();
+        <span class="function">HttpNetServer.setTimeout</span>(xhr, <span class="number">5000</span>);
+        <span class="function">HttpNetServer.open</span>(xhr, <span class="string">"GET"</span>, <span class="string">`https://api.example.com/weather?city=${<span class="function">encodeURIComponent</span>(city)}`</span>);
+        <span class="function">HttpNetServer.setHeader</span>(xhr, <span class="string">"Content-Type"</span>, <span class="string">"application/json"</span>);
+        <span class="function">HttpNetServer.onState</span>(xhr, () => {
+            <span class="keyword">if</span> (<span class="function">HttpNetServer.getReadyState</span>(xhr) === <span class="number">4</span>) {
+                <span class="keyword">const</span> status = <span class="function">HttpNetServer.getStatus</span>(xhr);
+                <span class="keyword">if</span> (status === <span class="number">200</span>) {
+                    <span class="keyword">const</span> response = <span class="function">HttpNetServer.getResponse</span>(xhr);
+                    <span class="keyword">try</span> {
+                        <span class="keyword">const</span> data = <span class="function">JSON.parse</span>(response);
+                        <span class="function">sendGroupMessage</span>(<span class="string">`${city}天气：${data.weather}，温度 ${data.temp}℃`</span>);
+                    } <span class="keyword">catch</span> (e) {
+                        <span class="function">sendGroupMessage</span>(<span class="string">"解析天气数据失败"</span>);
+                    }
+                } <span class="keyword">else</span> {
+                    <span class="function">sendGroupMessage</span>(<span class="string">`请求失败，状态码：${status}`</span>);
+                }
+            }
+        });
+        
+        <span class="function">HttpNetServer.send</span>(xhr);
+        <span class="function">WSystemMsg</span>(<span class="string">`正在查询 ${city} 天气...`</span>);
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">💡 提示</div>
+                        <p>所有 <code>HttpNetServer</code> 方法都是同步调用，回调函数中可使用
+                            <code>getReadyState</code>、<code>getStatus</code>、<code>getResponse</code>
+                            获取请求状态和结果。建议始终设置超时时间避免请求卡死。
+                        </p>
+                    </div>
+                </section>
+                <section id="security">
+                    <h2>安全限制</h2>
+                    <p>为了保障系统安全，脚本引擎实施了严格的安全策略：</p>
+
+                    <h3>禁止访问的 API</h3>
+                    <div class="card-grid">
+                        <div class="card">
+                            <h4>DOM 操作</h4>
+                            <p>document, window, location, history, navigator 等所有浏览器 BOM/DOM 对象</p>
+                        </div>
+                        <div class="card">
+                            <h4>网络请求</h4>
+                            <p>fetch, XMLHttpRequest, WebSocket, Worker 等所有网络相关 API</p>
+                        </div>
+                        <div class="card">
+                            <h4>存储访问</h4>
+                            <p>localStorage, sessionStorage, indexedDB, cookies</p>
+                        </div>
+                        <div class="card">
+                            <h4>代码执行</h4>
+                            <p>eval, Function, setTimeout/setInterval 传入字符串</p>
+                        </div>
+                        <div class="card">
+                            <h4>系统交互</h4>
+                            <p>alert, confirm, prompt, print, open, close</p>
+                        </div>
+                        <div class="card">
+                            <h4>危险语法</h4>
+                            <p>with 语句, debugger, import/export, __proto__ 访问</p>
+                        </div>
+                    </div>
+
+                    <h3>代码扫描规则</h3>
+                    <ul>
+                        <li>检测 <code>while/for</code> 循环（防止死循环）</li>
+                        <li>检测 <code>__proto__</code>, <code>constructor</code>, <code>prototype</code> 访问</li>
+                        <li>检测 <code>import/export</code> 语句</li>
+                        <li>检测 <code>with</code> 语句</li>
+                        <li>检测 <code>debugger</code> 语句</li>
+                        <li>检测 <code>new Function</code> 和 <code>eval</code> 调用</li>
+                        <li>检测危险全局变量访问字符串</li>
+                    </ul>
+
+                    <h3>字符串内容检查</h3>
+                    <p>所有传入 <code>WSystemMsg</code>, <code>infomsg</code>, <code>setVariable</code>
+                        的字符串都会经过危险内容扫描，如果包含以下模式将被拒绝：</p>
+                    <ul>
+                        <li>window, document, location 等危险全局变量名</li>
+                        <li>eval, Function, setTimeout 等可执行方法</li>
+                        <li>DOM 操作相关字符串</li>
+                    </ul>
+                </section>
+
+
+                <section id="limits">
+                    <h2>资源限制</h2>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>限制项</th>
+                                <th>上限值</th>
+                                <th>说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>代码长度</td>
+                                <td>10,000 字符</td>
+                                <td>超过此长度拒绝加载</td>
+                            </tr>
+                            <tr>
+                                <td>脚本初始化超时</td>
+                                <td>5 秒</td>
+                                <td>获取导出函数的超时时间</td>
+                            </tr>
+                            <tr>
+                                <td>事件处理超时</td>
+                                <td>3 秒</td>
+                                <td>单个事件处理函数超时</td>
+                            </tr>
+                            <tr>
+                                <td>嵌套深度</td>
+                                <td>20 层</td>
+                                <td>代码块 {} 的最大嵌套深度</td>
+                            </tr>
+                            <tr>
+                                <td>变量存储大小</td>
+                                <td>10 KB</td>
+                                <td>单个变量序列化后大小</td>
+                            </tr>
+                            <tr>
+                                <td>消息长度</td>
+                                <td>500 字符</td>
+                                <td>sendGroupMessage 内容限制</td>
+                            </tr>
+                            <tr>
+                                <td>延迟时间</td>
+                                <td>30 秒</td>
+                                <td>delay 函数最大延迟</td>
+                            </tr>
+                            <tr>
+                                <td>数组切片</td>
+                                <td>100 项</td>
+                                <td>Slicetion 返回数组最大长度</td>
+                            </tr>
+                            <tr>
+                                <td>深拷贝深度</td>
+                                <td>5 层</td>
+                                <td>getVariable 递归深度</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+
+                <section id="examples">
+                    <h2>完整示例</h2>
+                    <h3>示例 1：消息审核系统</h3>
+                    <div class="example">
+                        <div class="example-header">🛡️ 敏感词过滤 + 自动警告</div>
+                        <div class="example-content">
+                            <pre data-lang="javascript"><code><span class="comment">// 敏感词列表</span>
+<span class="keyword">const</span> sensitiveWords = [<span class="string">"广告"</span>, <span class="string">"推广"</span>, <span class="string">"加微信"</span>, <span class="string">"qq群"</span>];
+<span class="comment">// 警告阈值</span>
+<span class="keyword">const</span> WARN_LIMIT = <span class="number">3</span>;
+
+<span class="keyword">function</span> <span class="function">onSend</span>(event) {
+    <span class="keyword">const</span> text = event.content;
+
+    <span class="comment">// 检查敏感词</span>
+    <span class="keyword">if</span> (text.<span class="function">checkIfrom</span>(sensitiveWords)) {
+        <span class="function">infomsg</span>(<span class="string">"⚠️ 消息包含敏感词，请修改后发送"</span>);
+        <span class="keyword">return</span> <span class="keyword">false</span>; <span class="comment">// 阻止发送</span>
+    }
+
+    <span class="comment">// 检查发送频率</span>
+    <span class="keyword">const</span> user = <span class="function">getCurrentUser</span>();
+    <span class="keyword">const</span> key = <span class="string">`msg_count_${user.userId}`</span>;
+    <span class="keyword">let</span> count = <span class="function">getVariable</span>(key) || <span class="number">0</span>;
+    count++;
+
+    <span class="keyword">if</span> (count > WARN_LIMIT) {
+        <span class="function">infomsg</span>(<span class="string">"⚠️ 发送过于频繁，请稍后再试"</span>);
+        <span class="keyword">return</span> <span class="keyword">false</span>;
+    }
+
+    <span class="function">setVariable</span>(key, count);
+
+    <span class="comment">// 5秒后重置计数</span>
+    <span class="function">delay</span>(<span class="number">5000</span>).<span class="function">then</span>(() => {
+        <span class="keyword">const</span> current = <span class="function">getVariable</span>(key) || <span class="number">0</span>;
+        <span class="keyword">if</span> (current > <span class="number">0</span>) {
+            <span class="function">setVariable</span>(key, current - <span class="number">1</span>);
+        }
+    });
+}</code></pre>
+                        </div>
+                    </div>
+
+
+
+
+                </section>
+
+
+                <section id="best-practices">
+                    <h2>最佳实践</h2>
+
+                    <h3>1. 错误处理</h3>
+                    <p>虽然引擎有 try-catch 包装，但建议关键逻辑自行处理异常：</p>
+                    <pre data-lang="javascript"><code><span class="keyword">function</span> <span class="function">safeOperation</span>() {
+    <span class="keyword">try</span> {
+        <span class="comment">// 可能出错的操作</span>
+        <span class="keyword">const</span> data = <span class="function">JSON.parse</span>(<span class="function">getVariable</span>(<span class="string">"config"</span>) || <span class="string">"{}"</span>);
+        <span class="keyword">return</span> data;
+    } <span class="keyword">catch</span> (e) {
+        <span class="function">error</span>(<span class="string">"解析配置失败:"</span>, e.<span class="function">message</span>);
+        <span class="keyword">return</span> {};
+    }
+}</code></pre>
+
+                    <h3>2. 变量命名</h3>
+                    <ul>
+                        <li>使用描述性名称：<code>userWarningCount</code> 优于 <code>cnt</code></li>
+                        <li>添加前缀避免冲突：<code>bot_config</code>, <code>bot_state</code></li>
+                        <li>常量使用大写：<code>MAX_RETRY = 3</code></li>
+                    </ul>
+
+                    <h3>3. 性能优化</h3>
+                    <ul>
+                        <li>避免在 <code>onMessage</code> 中频繁读写变量，可缓存到局部变量</li>
+                        <li>大数据量使用 <code>Slicetion</code> 分批处理</li>
+                        <li>复杂计算考虑使用 <code>delay(0)</code> 让出执行权</li>
+                    </ul>
+
+
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>GroupInner Engine v2.2.0-security-hardened</p>
+        </div>
+    </footer>
+
+    <script>
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+
+        const sections = document.querySelectorAll('section[id]');
+        const sidebarLinks = document.querySelectorAll('.sidebar-links a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 150) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            sidebarLinks.forEach(link => {
+                link.style.color = '';
+                link.style.background = '';
+                if (link.getAttribute('href') === '#' + current) {
+                    link.style.color = 'var(--accent-cyan)';
+                    link.style.background = 'var(--bg-tertiary)';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,27 @@
+#sci-fi-bar {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    width: 60px;
+    height: 60px;
+    background: #111; 
+    border-radius: 30px; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
+    cursor: pointer;
+    transition: transform 0.2s; 
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none; 
+}
+
+#sci-fi-bar:hover {
+    transform: scale(1.1); 
+}
+
+#sci-fi-bar img {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 5px #00ff91); 
+}

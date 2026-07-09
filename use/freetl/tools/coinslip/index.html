@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线抛硬币</title>
+    <script src="/ast/3.4.17"></script>
+    <link href="/ast/fontawe/css/all.min.css" rel="stylesheet">
+
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#F59E0B',
+                        dark: '#1F2937',
+                        light: '#F3F4F6'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'spin-slow': 'spin 3s linear infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'flip': 'flip 1s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        flip: {
+                            '0%': { transform: 'rotateY(0deg)' },
+                            '100%': { transform: 'rotateY(360deg)' },
+                        }
+                    }
+                },
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .coin-shadow {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+      }
+      .perspective {
+        perspective: 1000px;
+      }
+      .preserve-3d {
+        transform-style: preserve-3d;
+      }
+      .backface-hidden {
+        backface-visibility: hidden;
+      }
+      .rotate-y-180 {
+        transform: rotateY(180deg);
+      }
+      .result-appear {
+        animation: resultAppear 0.5s ease-out forwards;
+      }
+      @keyframes resultAppear {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    }
+  </style>
+    <style>
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col">
+
+    <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fa fa-random text-primary text-2xl mr-2"></i>
+                        <span class="font-bold text-xl text-dark">在线抛硬币</span>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                        <i class="fa fa-moon-o text-dark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+
+    <main class="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+        <div class="max-w-3xl w-full mx-auto">
+
+            <div class="text-center mb-12">
+                <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-dark mb-4 tracking-tight">
+                    在线抛硬币
+                </h1>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+                    无法做出决定？让硬币为你选择！抛硬币并预测结果，看看运气如何。
+                </p>
+            </div>
+
+
+            <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12 relative overflow-hidden">
+
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div>
+                <div class="absolute -bottom-16 -left-16 w-40 h-40 bg-secondary/10 rounded-full blur-3xl"></div>
+
+                <div class="relative">
+
+                    <div class="mb-8">
+                        <label for="expectation" class="block text-sm font-medium text-gray-700 mb-2">
+                            你的期望值
+                        </label>
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="expectation" value="heads"
+                                    class="h-4 w-4 text-primary focus:ring-primary border-gray-300" checked>
+                                <span class="ml-2 text-gray-700">正面 (头像)</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="expectation" value="tails"
+                                    class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                                <span class="ml-2 text-gray-700">反面 (数字)</span>
+                            </label>
+                        </div>
+                    </div>
+
+
+                    <div class="flex justify-center items-center my-12 perspective">
+                        <div id="coin-container" class="w-40 h-40 relative preserve-3d transition-all duration-500">
+
+                            <div
+                                class="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-100 backface-hidden coin-shadow flex items-center justify-center">
+                                <div class="text-center">
+                                    <i class="fa fa-user-circle-o text-5xl text-yellow-800 mb-2"></i>
+                                    <p class="font-bold text-yellow-800">正面</p>
+                                </div>
+                            </div>
+
+
+                            <div
+                                class="absolute inset-0 rounded-full bg-gradient-to-br from-gray-300 to-gray-100 backface-hidden coin-shadow rotate-y-180 flex items-center justify-center">
+                                <div class="text-center">
+                                    <span class="text-5xl font-bold text-gray-800">1</span>
+                                    <p class="font-bold text-gray-800">反面</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div id="result-container"
+                        class="text-center mb-8 opacity-0 translate-y-4 transition-all duration-500">
+                        <div id="result-message" class="text-xl font-semibold text-gray-800 mb-2"></div>
+                        <div id="result-icon" class="text-4xl mb-4"></div>
+                        <div id="expectation-result" class="text-gray-600"></div>
+                    </div>
+
+
+                    <div class="flex justify-center">
+                        <button id="flip-button"
+                            class="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center">
+                            <i class="fa fa-refresh mr-2"></i>
+                            抛硬币
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-6 transition-all hover:shadow-lg">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-800">总抛次数</h3>
+                        <i class="fa fa-history text-primary"></i>
+                    </div>
+                    <p id="total-flips" class="text-3xl font-bold text-dark">0</p>
+                </div>
+
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-6 transition-all hover:shadow-lg">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-800">正面次数</h3>
+                        <i class="fa fa-arrow-up text-yellow-600"></i>
+                    </div>
+                    <p id="heads-count" class="text-3xl font-bold text-dark">0</p>
+                </div>
+
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-6 transition-all hover:shadow-lg">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-800">反面次数</h3>
+                        <i class="fa fa-arrow-down text-gray-600"></i>
+                    </div>
+                    <p id="tails-count" class="text-3xl font-bold text-dark">0</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <audio id="coin_audio" src="coin.mp3"></audio>
+
+    <script>
+        
+        const coinContainer = document.getElementById('coin-container');
+        const flipButton = document.getElementById('flip-button');
+        const resultContainer = document.getElementById('result-container');
+        const resultMessage = document.getElementById('result-message');
+        const resultIcon = document.getElementById('result-icon');
+        const expectationResult = document.getElementById('expectation-result');
+        const totalFlipsElement = document.getElementById('total-flips');
+        const headsCountElement = document.getElementById('heads-count');
+        const tailsCountElement = document.getElementById('tails-count');
+        const navbar = document.getElementById('navbar');
+        const themeToggle = document.getElementById('theme-toggle');
+
+
+        let stats = {
+            total: 0,
+            heads: 0,
+            tails: 0
+        };
+
+
+        function loadStats() {
+            const savedStats = localStorage.getItem('coinFlipStats');
+            if (savedStats) {
+                stats = JSON.parse(savedStats);
+                updateStatsDisplay();
+            }
+        }
+
+
+        function updateStatsDisplay() {
+            totalFlipsElement.textContent = stats.total;
+            headsCountElement.textContent = stats.heads;
+            tailsCountElement.textContent = stats.tails;
+        }
+
+
+        function saveStats() {
+            localStorage.setItem('coinFlipStats', JSON.stringify(stats));
+        }
+
+
+        function flipCoin() {
+            document.getElementById('coin_audio').play();
+            resultContainer.classList.remove('result-appear');
+            resultContainer.style.opacity = '0';
+            resultContainer.style.transform = 'translateY(20px)';
+
+
+            const expectation = document.querySelector('input[name="expectation"]:checked').value;
+
+
+            flipButton.disabled = true;
+            flipButton.classList.add('opacity-70', 'cursor-not-allowed');
+            flipButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 抛硬币中...';
+
+
+            const result = Math.random() > 0.5;
+
+
+            stats.total++;
+            if (result) {
+                stats.heads++;
+            } else {
+                stats.tails++;
+            }
+            updateStatsDisplay();
+            saveStats();
+
+
+            const flips = 5 + Math.floor(Math.random() * 5);
+            const direction = Math.random() > 0.5 ? 1 : -1;
+
+
+            coinContainer.style.transition = 'transform 0.1s ease-out';
+
+
+            let flipCount = 0;
+            const flipInterval = setInterval(() => {
+                flipCount++;
+                coinContainer.style.transform = `rotateY(${flipCount * 180 * direction}deg)`;
+
+                if (flipCount >= flips) {
+                    clearInterval(flipInterval);
+
+
+                    setTimeout(() => {
+                        coinContainer.style.transition = 'transform 0.5s ease-out';
+                        coinContainer.style.transform = `rotateY(${result ? 0 : 180}deg)`;
+
+
+                        setTimeout(() => {
+                            displayResult(result, expectation);
+
+
+                            flipButton.disabled = false;
+                            flipButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                            flipButton.innerHTML = '<i class="fa fa-refresh mr-2"></i> 抛硬币';
+                        }, 500);
+                    }, 100);
+                }
+            }, 100);
+        }
+
+
+        function displayResult(isHeads, expectation) {
+            const resultText = isHeads ? '正面' : '反面';
+            const resultValue = isHeads ? 'heads' : 'tails';
+            const iconClass = isHeads ? 'fa-user-circle-o text-yellow-600' : 'fa-database text-gray-600';
+
+            resultMessage.textContent = `结果是: ${resultText}`;
+            resultIcon.innerHTML = `<i class="fa ${iconClass}"></i>`;
+
+
+            if (expectation === resultValue) {
+                expectationResult.textContent = '恭喜，你猜对了！🎉';
+                expectationResult.className = 'text-green-600 font-medium';
+            } else {
+                expectationResult.textContent = '很遗憾，猜错了！再接再厉。';
+                expectationResult.className = 'text-red-500';
+            }
+
+
+            resultContainer.classList.add('result-appear');
+            resultContainer.style.opacity = '1';
+            resultContainer.style.transform = 'translateY(0)';
+        }
+
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 10) {
+                navbar.classList.add('shadow-md');
+                navbar.classList.remove('shadow-sm');
+            } else {
+                navbar.classList.remove('shadow-md');
+                navbar.classList.add('shadow-sm');
+            }
+        });
+
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+
+            if (isDark) {
+                document.body.classList.add('bg-gray-900', 'text-white');
+                document.body.classList.remove('bg-gradient-to-br', 'from-blue-50', 'to-indigo-100');
+                themeToggle.innerHTML = '<i class="fa fa-sun-o text-yellow-400"></i>';
+
+
+                const cards = document.querySelectorAll('.bg-white, .bg-white/80');
+                cards.forEach(card => {
+                    card.classList.add('bg-gray-800/80', 'text-white');
+                    card.classList.remove('bg-white', 'bg-white/80');
+                });
+
+
+                const textElements = document.querySelectorAll('.text-gray-600, .text-gray-700, .text-gray-800');
+                textElements.forEach(el => {
+                    el.classList.add('text-gray-300');
+                    el.classList.remove('text-gray-600', 'text-gray-700', 'text-gray-800');
+                });
+            } else {
+                document.body.classList.remove('bg-gray-900', 'text-white');
+                document.body.classList.add('bg-gradient-to-br', 'from-blue-50', 'to-indigo-100');
+                themeToggle.innerHTML = '<i class="fa fa-moon-o text-dark"></i>';
+
+
+                const cards = document.querySelectorAll('.bg-gray-800/80');
+                cards.forEach(card => {
+                    card.classList.remove('bg-gray-800/80', 'text-white');
+                    card.classList.add('bg-white', 'bg-white/80');
+                });
+
+
+                const textElements = document.querySelectorAll('.text-gray-300');
+                textElements.forEach(el => {
+                    el.classList.remove('text-gray-300');
+                    el.classList.add('text-gray-600');
+                });
+            }
+        });
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            flipButton.addEventListener('click', flipCoin);
+        });
+    </script>
+</body>
+
+</html>

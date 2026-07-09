@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>MOK-IM · 安全 · 匿名 · 可编程的现代即时通讯</title>
+    <meta name="description" content="MOK-IM 是一款面向匿名社群、注重隐私安全、支持哈希链防篡改和群聊脚本沙箱的轻量化即时通讯工具。">
+    <meta name="keywords" content="MOK-IM,即时通讯,匿名聊天,哈希链,群脚本,隐私安全">
+    <meta name="author" content="MOK-IM">
+    <link rel="stylesheet" href="ast/fontawe/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #60a5fa;
+            --secondary: #8b5cf6;
+            --accent: #f59e0b;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --light: #f8fafc;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+    
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+   
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-sm);
+            z-index: 1000;
+            padding: 1rem 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-scrolled {
+            padding: 0.75rem 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .btn-login {
+            background: var(--primary);
+            color: white !important;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            transition: all 0.2s !important;
+        }
+
+        .btn-login:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .menu-toggle {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+
+ 
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.125rem;
+        }
+
+   
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 6rem 2rem 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2.5rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-item {
+            text-align: left;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .hero-image {
+            position: relative;
+        }
+
+        .hero-image img {
+            width: 100%;
+            max-width: 500px;
+            border-radius: 24px;
+            box-shadow: var(--shadow-xl);
+            background: var(--white);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .floating-card {
+            position: absolute;
+            background: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 40px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .floating-card i {
+            font-size: 1.2rem;
+        }
+
+        .card-1 {
+            top: -20px;
+            right: -20px;
+            animation-delay: 0s;
+        }
+
+        .card-2 {
+            bottom: 40px;
+            left: -30px;
+            animation-delay: 1s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+   
+        .section {
+            padding: 5rem 2rem;
+        }
+
+        .section-dark {
+            background: var(--dark);
+            color: white;
+        }
+
+        .section-light {
+            background: var(--light);
+        }
+
+        .section-white {
+            background: var(--white);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            color: var(--gray);
+            font-size: 1.125rem;
+        }
+
+        .section-dark .section-header h2 {
+            color: white;
+        }
+
+        .section-dark .section-header p {
+            color: #94a3b8;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .feature-icon i {
+            font-size: 2rem;
+            color: white;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--gray);
+            line-height: 1.5;
+        }
+
+        .feature-badge {
+            display: inline-block;
+            background: #e0f2fe;
+            color: var(--primary);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            margin-top: 1rem;
+        }
+
+ 
+        .comparison-table {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .comparison-table th {
+            background: var(--light);
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table td i.fa-check {
+            color: #10b981;
+        }
+
+        .comparison-table td i.fa-times {
+            color: #ef4444;
+        }
+
+        .comparison-table td i.fa-star {
+            color: var(--accent);
+        }
+
+    
+        .code-block {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        .code-block pre {
+            color: #e2e8f0;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .code-block .keyword {
+            color: #c084fc;
+        }
+
+        .code-block .function {
+            color: #60a5fa;
+        }
+
+        .code-block .string {
+            color: #34d399;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+        }
+
+     
+        .cta {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 32px;
+            padding: 3rem;
+            text-align: center;
+            color: white;
+        }
+
+        .cta h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta p {
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .cta .btn {
+            background: white;
+            color: var(--primary);
+        }
+
+        .cta .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+   
+        .footer {
+            background: var(--dark);
+            color: #94a3b8;
+            padding: 3rem 2rem;
+        }
+
+        .footer-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-brand p {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .footer-links h4 {
+            color: white;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .footer-links a {
+            display: block;
+            color: #94a3b8;
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid #334155;
+            font-size: 0.875rem;
+        }
+
+      
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 1rem;
+                gap: 1rem;
+                box-shadow: var(--shadow-md);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .hero-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .hero-stats {
+                justify-content: center;
+            }
+
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .cta {
+                padding: 2rem;
+            }
+
+            .cta h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+  
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-comment-dots"></i>
+                <span>MOK-IM</span>
+            </a>
+            <div class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="nav-links" id="navLinks">
+                <a href="#features">特性</a>
+                <a href="#compare">对比</a>
+                <a href="#scripts">群脚本</a>
+                <a href="#security">安全</a>
+                <a href="chat.php" class="btn-login">进入聊天 <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>重新定义<br>匿名社交通信</h1>
+                <p>MOK-IM 是一款专为匿名社群设计的轻量化即时通讯工具。哈希链防篡改、群聊脚本沙箱、极致个性化定制 — 让沟通更自由、更安全。</p>
+                <div class="hero-buttons">
+                    <a href="chat.php" class="btn btn-primary btn-large">
+                        <i class="fas fa-rocket"></i> 立即体验
+                    </a>
+                    <a href="#features" class="btn btn-outline btn-large">
+                        <i class="fas fa-info-circle"></i> 了解更多
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">数据自托管</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">SHA-256</div>
+                        <div class="stat-label">哈希链验证</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">5+</div>
+                        <div class="stat-label">精美主题</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 500'%3E%3Crect width='400' height='500' fill='%23ffffff' rx='24'/%3E%3Crect x='20' y='20' width='360' height='50' fill='%233b82f6' rx='12'/%3E%3Crect x='20' y='85' width='200' height='30' fill='%23e2e8f0' rx='8'/%3E%3Crect x='20' y='125' width='160' height='30' fill='%23e2e8f0' rx='8'/%3E%3Crect x='20' y='165' width='180' height='30' fill='%23e2e8f0' rx='8'/%3E%3Crect x='20' y='205' width='140' height='30' fill='%23e2e8f0' rx='8'/%3E%3Crect x='20' y='280' width='300' height='60' fill='%23f0f9ff' rx='12'/%3E%3Crect x='20' y='355' width='250' height='60' fill='%23f0f9ff' rx='12'/%3E%3Crect x='20' y='430' width='180' height='40' fill='%233b82f6' rx='20'/%3E%3C/svg%3E"
+                    alt="MOK-IM 预览">
+                <div class="floating-card card-1">
+                    <i class="fas fa-shield-alt" style="color: #3b82f6;"></i>
+                    <span>哈希链验证中</span>
+                </div>
+                <div class="floating-card card-2">
+                    <i class="fas fa-code" style="color: #8b5cf6;"></i>
+                    <span>群脚本运行中</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="section section-white" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>为什么选择 MOK-IM？</h2>
+                <p>不只是聊天工具，更是一套完整的匿名社群沟通解决方案</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <h3>哈希链防篡改</h3>
+                    <p>每条消息都经过 SHA-256 哈希计算，形成防篡改链条。导出证据包，任何第三方都可独立验证聊天记录的真伪。</p>
+                    <span class="feature-badge">司法级证据效力</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-terminal"></i>
+                    </div>
+                    <h3>群聊脚本沙箱</h3>
+                    <p>群主可在群内直接编写 JavaScript 脚本，实现自动禁言、违规词过滤、入群欢迎等自定义逻辑，无需部署外部服务。</p>
+                    <span class="feature-badge">比 Bot 更轻量</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h3>极致个性化定制</h3>
+                    <p>5 套精美主题、5 种气泡形状、动态背景动画、独立字体方案 — 打造属于你的独一无二界面。</p>
+                    <span class="feature-badge">远超深色模式</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-microphone"></i>
+                    </div>
+                    <h3>语音转文字</h3>
+                    <p>实时语音识别，边说话边转文字。比传统语音条更高效，适合注重效率的场景。</p>
+                    <span class="feature-badge">效率优先</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>去中心化文件传输</h3>
+                    <p>支持外链发送和第三方网盘上传（蓝奏云等），文件存储由用户自主决定，降低服务端成本。</p>
+                    <span class="feature-badge">轻服务端架构</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>定时消息</h3>
+                    <p>支持单次定时和每日/每周/每月重复发送，适合定期提醒、生日祝福等场景。</p>
+                    <span class="feature-badge">效率工具</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+   
+    <section class="section section-light" id="compare">
+        <div class="container">
+            <div class="section-header">
+                <h2>与主流IM的对比</h2>
+                <p>MOK-IM 在特定场景下拥有无可替代的优势</p>
+            </div>
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>功能</th>
+                            <th>MOK-IM</th>
+                            <th>微信/QQ</th>
+                            <th>Telegram</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>聊天记录可验证</td>
+                            <td><i class="fas fa-check"></i> 哈希链</td>
+                            <td><i class="fas fa-times"></i> 不可验证</td>
+                            <td><i class="fas fa-times"></i> 不可验证</td>
+                        </tr>
+                        <tr>
+                            <td>群聊可编程脚本</td>
+                            <td><i class="fas fa-check"></i> 沙箱JS</td>
+                            <td><i class="fas fa-times"></i> 无</td>
+                            <td><i class="fas fa-check"></i> 需Bot</td>
+                        </tr>
+                        <tr>
+                            <td>界面个性化</td>
+                            <td><i class="fas fa-star"></i> 5主题+气泡+背景</td>
+                            <td><i class="fas fa-times"></i> 仅深色/浅色</td>
+                            <td><i class="fas fa-check"></i> 有限</td>
+                        </tr>
+                        <tr>
+                            <td>数据自托管</td>
+                            <td><i class="fas fa-check"></i> 完全自托管</td>
+                            <td><i class="fas fa-times"></i> 云端</td>
+                            <td><i class="fas fa-check"></i> 云端</td>
+                        </tr>
+                        <tr>
+                            <td>语音消息</td>
+                            <td><i class="fas fa-check"></i> 语音转文字</td>
+                            <td><i class="fas fa-check"></i> 语音条</td>
+                            <td><i class="fas fa-check"></i> 语音条</td>
+                        </tr>
+                        <tr>
+                            <td>定时消息</td>
+                            <td><i class="fas fa-check"></i> 支持重复</td>
+                            <td><i class="fas fa-times"></i> 弱</td>
+                            <td><i class="fas fa-check"></i> 需Bot</td>
+                        </tr>
+                        <tr>
+                            <td>文件上传</td>
+                            <td><i class="fas fa-check"></i> 外链/第三方</td>
+                            <td><i class="fas fa-check"></i> 中心化</td>
+                            <td><i class="fas fa-check"></i> 中心化</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+   
+    <section class="section section-white" id="scripts">
+        <div class="container">
+            <div class="section-header">
+                <h2>群脚本 · 无限可能</h2>
+                <p>无需部署 Bot，群主在线编写 JavaScript，实时生效</p>
+            </div>
+            <div class="features-grid" style="margin-bottom: 2rem;">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
+                        <i class="fas fa-shield-virus"></i>
+                    </div>
+                    <h3>违规词自动拦截</h3>
+                    <p>自定义敏感词库，自动屏蔽违规消息并发送系统提示</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <h3>入群欢迎语</h3>
+                    <p>新成员加入时自动发送欢迎消息和群规提示</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                        <i class="fas fa-gavel"></i>
+                    </div>
+                    <h3>自动禁言</h3>
+                    <p>检测到违规行为可自动禁言违规成员</p>
+                </div>
+            </div>
+            <div class="code-block">
+                <pre><code><span class="comment">// 群脚本示例：自动过滤违规词</span>
+<span class="keyword">const</span> badWords = [<span class="string">"广告"</span>, <span class="string">"诈骗"</span>, <span class="string">"违法"</span>];
+
+<span class="keyword">function</span> <span class="function">onEnter</span>() {
+    <span class="function">infomsg</span>(<span class="string">"欢迎加入本群，请遵守群规~"</span>);
+}
+
+<span class="keyword">function</span> <span class="function">onSend</span>(msg) {
+    <span class="keyword">if</span> (msg.content.<span class="function">checkIfrom</span>(badWords)) {
+        <span class="function">WSystemMsg</span>(<span class="string">"⚠️ 检测到违规内容，消息已被屏蔽"</span>);
+        <span class="keyword">return</span> <span class="keyword">false</span>;  <span class="comment">// 阻止发送</span>
+    }
+}</code></pre>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="section section-light" id="security">
+        <div class="container">
+            <div class="section-header">
+                <h2>安全 · 透明 · 可审计</h2>
+                <p>哈希链技术让每一条消息都可追溯、可验证</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <h3>哈希链原理</h3>
+                    <p>每条消息记录前一条消息的哈希值，形成防篡改链条。任何修改都会破坏链条完整性。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3>证据包导出</h3>
+                    <p>一键导出包含完整哈希链的 JSON 证据包，第三方可独立验证聊天记录真伪。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3>本地存储</h3>
+                    <p>所有聊天记录存储在浏览器 IndexedDB，数据归用户所有，服务端不留存。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-white">
+        <div class="container">
+            <div class="section-header">
+                <h2>5 套精美主题</h2>
+                <p>现代简约 · 深邃暗夜 · 赛博朋克 · 樱花和风 · 海洋之心</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" style="text-align: center;">
+                    <i class="fas fa-leaf" style="font-size: 2.5rem; color: #3498db;"></i>
+                    <h3>现代简约</h3>
+                    <p>清爽简洁，专注沟通</p>
+                </div>
+                <div class="feature-card" style="text-align: center;">
+                    <i class="fas fa-moon" style="font-size: 2.5rem; color: #667eea;"></i>
+                    <h3>深邃暗夜</h3>
+                    <p>护眼深色，沉浸体验</p>
+                </div>
+                <div class="feature-card" style="text-align: center;">
+                    <i class="fas fa-microchip" style="font-size: 2.5rem; color: #ff00ff;"></i>
+                    <h3>赛博朋克</h3>
+                    <p>霓虹炫彩，未来科技</p>
+                </div>
+                <div class="feature-card" style="text-align: center;">
+                    <i class="fas fa-cherry-blossom" style="font-size: 2.5rem; color: #ff8da1;"></i>
+                    <h3>樱花和风</h3>
+                    <p>粉嫩温柔，春日气息</p>
+                </div>
+                <div class="feature-card" style="text-align: center;">
+                    <i class="fas fa-water" style="font-size: 2.5rem; color: #2e86ab;"></i>
+                    <h3>海洋之心</h3>
+                    <p>蔚蓝深邃，宁静致远</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="cta">
+                <h2>准备好了吗？</h2>
+                <p>加入 MOK-IM，体验前所未有的匿名社群沟通方式</p>
+                <a href="chat.php" class="btn btn-large">
+                    <i class="fas fa-arrow-right"></i> 立即开始
+                </a>
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="logo" style="color: white;">
+                    <i class="fas fa-comment-dots"></i>
+                    <span>MOK-IM</span>
+                </div>
+                <p>安全 · 匿名 · 可编程<br>现代即时通讯</p>
+            </div>
+            <div class="footer-links">
+                <h4>产品</h4>
+                <a href="#features">特性</a>
+                <a href="#compare">对比</a>
+                <a href="#scripts">群脚本</a>
+                <a href="#security">安全</a>
+            </div>
+            <div class="footer-links">
+                <h4>资源</h4>
+                <a href="notice/Doc/g-evdence/">证据包说明</a>
+                <a href="notice/Doc/groups-settings/">群配置文档</a>
+                <a href="notice/Doc/revokeaccount/">账号注销</a>
+            </div>
+            <div class="footer-links">
+                <h4>关于</h4>
+                <a href="notice/">平台公告</a>
+                <a href="notice/page/1.html">用户协议</a>
+                <a href="notice/page/1.html">隐私政策</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025-2026 MOK-IM. All rights reserved. | 守护你的数字安全</p>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('scroll', function () {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('navbar-scrolled');
+            } else {
+                navbar.classList.remove('navbar-scrolled');
+            }
+        });
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        menuToggle.addEventListener('click', function () {
+            navLinks.classList.toggle('active');
+        });
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    navLinks.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线迷宫游戏生成</title>
+    <script src="/ast/3.4.17"></script>
+    <link href="/ast/fontawe/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#F59E0B',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .maze-shadow {
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .animate-float {
+                animation: float 3s ease-in-out infinite;
+            }
+            @keyframes float {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+                100% { transform: translateY(0px); }
+            }
+        }
+    </style>
+    <style>
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-light to-blue-50 min-h-screen font-inter text-dark">
+    <header class="container mx-auto px-4 py-6">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center mb-4 md:mb-0">
+                <i class="fa fa-puzzle-piece text-primary text-3xl mr-3 animate-float"></i>
+                <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold text-dark text-shadow">
+                    迷宫游戏<span class="text-primary">生成</span>
+                </h1>
+            </div>
+            <nav>
+
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <div
+                class="lg:col-span-1 bg-white rounded-xl p-6 shadow-lg transform hover:shadow-xl transition-all duration-300">
+                <h2 class="text-xl font-bold mb-4 text-dark border-b pb-2">游戏设置</h2>
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">迷宫形状</label>
+                        <div class="flex space-x-4">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="radio" name="shape" value="rectangle"
+                                    class="form-radio h-5 w-5 text-primary" checked>
+                                <span class="ml-2">矩形</span>
+                            </label>
+                            <label style="display: none;" class="inline-flex items-center cursor-pointer">
+                                <input type="radio" name="shape" value="circle" class="form-radio h-5 w-5 text-primary">
+                                <span class="ml-2">圆形</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">难度级别</label>
+                        <div class="flex space-x-2">
+                            <button type="button"
+                                class="difficulty-btn w-10 h-10 rounded-full bg-primary text-white font-bold"
+                                data-level="1">1</button>
+                            <button type="button"
+                                class="difficulty-btn w-10 h-10 rounded-full bg-gray-200 text-gray-700 font-bold"
+                                data-level="2">2</button>
+                            <button type="button"
+                                class="difficulty-btn w-10 h-10 rounded-full bg-gray-200 text-gray-700 font-bold"
+                                data-level="3">3</button>
+                            <button type="button"
+                                class="difficulty-btn w-10 h-10 rounded-full bg-gray-200 text-gray-700 font-bold"
+                                data-level="4">4</button>
+                            <button  type="button"
+                                class="difficulty-btn w-10 h-10 rounded-full bg-gray-200 text-gray-700 font-bold"
+                                data-level="5">5</button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">难度越高，迷宫越复杂(难度4、5非人类勿挑战)</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">迷宫尺寸</label>
+                        <input type="range" id="mazeSize" min="10" max="19" value="15"
+                            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>小</span>
+                            <span id="sizeValue">15 x 15</span>
+                            <span>大</span>
+                        </div>
+                    </div>
+
+                    <button id="generateBtn"
+                        class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
+                        <i class="fa fa-refresh mr-2"></i> 生成新迷宫
+                    </button>
+
+                    <button id="downloadBtn"
+                        class="w-full bg-secondary hover:bg-secondary/90 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center opacity-50 cursor-not-allowed">
+                        <i class="fa fa-download mr-2"></i> 下载迷宫
+                    </button>
+                </div>
+            </div>
+
+
+            <div class="lg:col-span-2 bg-white rounded-xl p-6 shadow-lg flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-dark">迷宫游戏</h2>
+                    <div class="flex space-x-3">
+                        <div class="flex items-center">
+                            <i class="fa fa-clock-o text-accent mr-1"></i>
+                            <span id="timer" class="font-mono">00:00</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-steps text-primary mr-1"></i>
+                            <span id="steps" class="font-mono">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="gameContainer" class="relative flex-grow bg-gray-50 rounded-lg overflow-hidden maze-shadow">
+                    <canvas id="mazeCanvas" class="w-full h-full"></canvas>
+
+                    <div id="startModal"
+                        class="absolute inset-0 bg-dark/70 flex flex-col items-center justify-center z-10">
+                        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 transform transition-all duration-500">
+                            <h3 class="text-2xl font-bold text-center mb-4 text-dark">准备好了吗？</h3>
+                            <p class="text-gray-600 mb-6 text-center">使用键盘方向键或WASD移动，找到出口！</p>
+                            <button id="startBtn"
+                                class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+                                开始游戏
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="winModal"
+                        class="absolute inset-0 bg-dark/70 flex flex-col items-center justify-center z-10 hidden">
+                        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 transform transition-all duration-500 scale-95 opacity-0"
+                            id="winModalContent">
+                            <div class="text-center mb-4">
+                                <div class="inline-block p-3 rounded-full bg-green-100 mb-3">
+                                    <i class="fa fa-trophy text-4xl text-accent"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold text-dark">恭喜你！</h3>
+                                <p class="text-gray-600 mt-2">你成功走出了迷宫！</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-500">用时</p>
+                                    <p id="finalTime" class="text-xl font-bold text-dark">00:00</p>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-500">步数</p>
+                                    <p id="finalSteps" class="text-xl font-bold text-dark">0</p>
+                                </div>
+                            </div>
+
+                            <div class="flex space-x-3">
+                                <button id="playAgainBtn"
+                                    class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+                                    再玩一次
+                                </button>
+                                <button id="downloadWinBtn"
+                                    class="flex-1 bg-secondary hover:bg-secondary/90 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+                                    下载迷宫
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex justify-center">
+                    <div class="bg-gray-50 p-3 rounded-lg text-sm text-gray-600">
+                        <p><i class="fa fa-info-circle text-primary mr-1"></i> 提示：到达黄色标记处即为出口</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const canvas = document.getElementById('mazeCanvas');
+            const ctx = canvas.getContext('2d');
+            const startModal = document.getElementById('startModal');
+            const winModal = document.getElementById('winModal');
+            const winModalContent = document.getElementById('winModalContent');
+            const startBtn = document.getElementById('startBtn');
+            const playAgainBtn = document.getElementById('playAgainBtn');
+            const generateBtn = document.getElementById('generateBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const downloadWinBtn = document.getElementById('downloadWinBtn');
+            const timerElement = document.getElementById('timer');
+            const stepsElement = document.getElementById('steps');
+            const finalTimeElement = document.getElementById('finalTime');
+            const finalStepsElement = document.getElementById('finalSteps');
+            const mazeSizeSlider = document.getElementById('mazeSize');
+            const sizeValueElement = document.getElementById('sizeValue');
+            const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+
+
+            let maze = [];
+            let cellSize = 20;
+            let player = { x: 1, y: 1 };
+            let exit = { x: 0, y: 0 };
+            let timer = 0;
+            let timerInterval;
+            let steps = 0;
+            let gameStarted = false;
+            let gameCompleted = false;
+            let difficulty = 1;
+            let mazeShape = 'rectangle';
+            let mazeWidth = 15;
+            let mazeHeight = 15;
+
+
+            mazeSizeSlider.addEventListener('input', function () {
+                const size = parseInt(this.value);
+                sizeValueElement.textContent = `${size} x ${size}`;
+            });
+
+
+            difficultyBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    difficultyBtns.forEach(b => {
+                        b.classList.remove('bg-primary', 'text-white');
+                        b.classList.add('bg-gray-200', 'text-gray-700');
+                    });
+                    this.classList.remove('bg-gray-200', 'text-gray-700');
+                    this.classList.add('bg-primary', 'text-white');
+                    difficulty = parseInt(this.dataset.level);
+                });
+            });
+
+
+            document.querySelectorAll('input[name="shape"]').forEach(radio => {
+                radio.addEventListener('change', function () {
+                    mazeShape = this.value;
+                });
+            });
+
+            function resizeCanvas() {
+                const container = document.getElementById('gameContainer');
+                const containerWidth = container.clientWidth;
+                const containerHeight = container.clientHeight;
+
+
+                const size = parseInt(mazeSizeSlider.value);
+                mazeWidth = size;
+                mazeHeight = size;
+
+
+                if (difficulty === 2) {
+                    mazeWidth = Math.min(size + 5, 30);
+                    mazeHeight = Math.min(size + 5, 30);
+                } else if (difficulty === 3) {
+                    mazeWidth = Math.min(size + 10, 30);
+                    mazeHeight = Math.min(size + 10, 30);
+                } else if (difficulty === 4) {
+                    mazeWidth = Math.min(size + 100, 125);
+                    mazeHeight = Math.min(size + 100, 125);
+                } else if (difficulty === 5) {
+                    mazeWidth = Math.min(size + 150, 125);
+                    mazeHeight = Math.min(size + 150, 125);
+                }
+
+
+                cellSize = Math.min(
+                    Math.floor(containerWidth / (mazeWidth + 2)),
+                    Math.floor(containerHeight / (mazeHeight + 2))
+                );
+
+
+                canvas.width = (mazeWidth + 2) * cellSize;
+                canvas.height = (mazeHeight + 2) * cellSize;
+
+
+                if (maze.length > 0) {
+
+                    maze = Array(mazeHeight).fill().map(() => Array(mazeWidth).fill(0));
+                    initMaze();
+                }
+            }
+
+
+            function initMaze() {
+
+                maze = Array(mazeHeight).fill().map(() => Array(mazeWidth).fill(0));
+
+
+                const stack = [];
+                const visited = Array(mazeHeight).fill().map(() => Array(mazeWidth).fill(false));
+
+
+                let startX = Math.floor(Math.random() * (mazeWidth - 2)) + 1;
+                let startY = Math.floor(Math.random() * (mazeHeight - 2)) + 1;
+
+
+                startX = startX % 2 === 0 ? startX + 1 : startX;
+                startY = startY % 2 === 0 ? startY + 1 : startY;
+
+
+                maze[startY][startX] = 1;
+                visited[startY][startX] = true;
+                stack.push({ x: startX, y: startY });
+
+
+                const directions = [
+                    { dx: 0, dy: -2 },
+                    { dx: 2, dy: 0 },
+                    { dx: 0, dy: 2 },
+                    { dx: -2, dy: 0 }
+                ];
+
+
+                while (stack.length > 0) {
+                    const current = stack[stack.length - 1];
+
+
+                    const possibleNeighbors = [];
+                    directions.forEach(dir => {
+                        const nx = current.x + dir.dx;
+                        const ny = current.y + dir.dy;
+
+                        if (nx > 0 && nx < mazeWidth - 1 && ny > 0 && ny < mazeHeight - 1 && !visited[ny][nx]) {
+                            possibleNeighbors.push({ x: nx, y: ny, dx: dir.dx, dy: dir.dy });
+                        }
+                    });
+
+
+                    if (possibleNeighbors.length === 0) {
+                        stack.pop();
+                        continue;
+                    }
+
+
+                    const randomNeighbor = possibleNeighbors[Math.floor(Math.random() * possibleNeighbors.length)];
+
+
+                    const wallX = current.x + randomNeighbor.dx / 2;
+                    const wallY = current.y + randomNeighbor.dy / 2;
+                    maze[wallY][wallX] = 1;
+
+
+                    maze[randomNeighbor.y][randomNeighbor.x] = 1;
+                    visited[randomNeighbor.y][randomNeighbor.x] = true;
+
+
+                    stack.push({ x: randomNeighbor.x, y: randomNeighbor.y });
+                }
+
+
+                player = { x: 1, y: 1 };
+
+
+                let maxDistance = 0;
+                for (let y = 0; y < mazeHeight; y++) {
+                    for (let x = 0; x < mazeWidth; x++) {
+                        if (maze[y][x] === 1) {
+                            const distance = Math.abs(x - player.x) + Math.abs(y - player.y);
+                            if (distance > maxDistance) {
+                                maxDistance = distance;
+                                exit = { x, y };
+                            }
+                        }
+                    }
+                }
+
+
+                if (exit.x < mazeWidth / 2) exit.x = 0;
+                else exit.x = mazeWidth - 1;
+
+                if (exit.y < mazeHeight / 2) exit.y = 0;
+                else exit.y = mazeHeight - 1;
+
+
+                if (exit.x === 0) maze[exit.y][1] = 1;
+                else if (exit.x === mazeWidth - 1) maze[exit.y][mazeWidth - 2] = 1;
+
+                if (exit.y === 0) maze[1][exit.x] = 1;
+                else if (exit.y === mazeHeight - 1) maze[mazeHeight - 2][exit.x] = 1;
+
+
+                drawMaze();
+            }
+
+
+            function drawMaze() {
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+                ctx.fillStyle = '#F9FAFB';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+
+                for (let y = 0; y < mazeHeight; y++) {
+                    for (let x = 0; x < mazeWidth; x++) {
+                        const cellX = (x + 1) * cellSize;
+                        const cellY = (y + 1) * cellSize;
+
+                        if (maze[y][x] === 0) {
+
+                            ctx.fillStyle = '#1E293B';
+
+
+                            if (mazeShape === 'rectangle' || isInCircle(x, y)) {
+                                ctx.fillRect(cellX, cellY, cellSize, cellSize);
+                            }
+                        }
+                    }
+                }
+
+
+                if (mazeShape === 'circle') {
+                    ctx.fillStyle = '#F9FAFB';
+                    const centerX = (mazeWidth / 2 + 1) * cellSize;
+                    const centerY = (mazeHeight / 2 + 1) * cellSize;
+                    const radius = (Math.min(mazeWidth, mazeHeight) / 2) * cellSize;
+
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                    ctx.clip();
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+                    for (let y = 0; y < mazeHeight; y++) {
+                        for (let x = 0; x < mazeWidth; x++) {
+                            if (maze[y][x] === 0 && isInCircle(x, y)) {
+                                const cellX = (x + 1) * cellSize;
+                                const cellY = (y + 1) * cellSize;
+                                ctx.fillStyle = '#1E293B';
+                                ctx.fillRect(cellX, cellY, cellSize, cellSize);
+                            }
+                        }
+                    }
+                }
+
+
+                const exitX = (exit.x + 1) * cellSize;
+                const exitY = (exit.y + 1) * cellSize;
+                ctx.fillStyle = '#F59E0B';
+                ctx.fillRect(exitX, exitY, cellSize, cellSize);
+
+
+                const playerX = (player.x + 1) * cellSize;
+                const playerY = (player.y + 1) * cellSize;
+                ctx.fillStyle = '#3B82F6';
+                ctx.beginPath();
+                ctx.arc(playerX + cellSize / 2, playerY + cellSize / 2, cellSize / 3, 0, Math.PI * 2);
+                ctx.fill();
+
+
+                if (gameCompleted) {
+                    drawPath();
+                }
+            }
+
+
+            function isInCircle(x, y) {
+                const centerX = mazeWidth / 2;
+                const centerY = mazeHeight / 2;
+                const radius = Math.min(mazeWidth, mazeHeight) / 2;
+
+                return Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)) <= radius;
+            }
+
+
+            function drawPath() {
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
+                ctx.lineWidth = cellSize / 3;
+                ctx.lineCap = 'round';
+
+                ctx.beginPath();
+                ctx.moveTo((playerPath[0].x + 1) * cellSize + cellSize / 2,
+                    (playerPath[0].y + 1) * cellSize + cellSize / 2);
+
+                for (let i = 1; i < playerPath.length; i++) {
+                    ctx.lineTo((playerPath[i].x + 1) * cellSize + cellSize / 2,
+                        (playerPath[i].y + 1) * cellSize + cellSize / 2);
+                }
+
+                ctx.stroke();
+            }
+
+
+            let playerPath = [];
+            function movePlayer(dx, dy) {
+                if (!gameStarted || gameCompleted) return;
+
+                const newX = player.x + dx;
+                const newY = player.y + dy;
+
+                if (newX >= 0 && newX < mazeWidth && newY >= 0 && newY < mazeHeight &&
+                    maze[newY][newX] === 1 &&
+                    (mazeShape === 'rectangle' || isInCircle(newX, newY))) {
+
+                    player.x = newX;
+                    player.y = newY;
+                    steps++;
+                    stepsElement.textContent = steps;
+
+                    playerPath.push({ x: newX, y: newY });
+
+                    drawMaze();
+
+
+                    if (checkPlayerAtExit()) {
+                        completeGame();
+                    }
+                }
+            }
+
+            function checkPlayerAtExit() {
+
+                const playerRadius = cellSize / 4;
+                const playerLeft = player.x * cellSize + cellSize / 2 - playerRadius;
+                const playerRight = player.x * cellSize + cellSize / 2 + playerRadius;
+                const playerTop = player.y * cellSize + cellSize / 2 - playerRadius;
+                const playerBottom = player.y * cellSize + cellSize / 2 + playerRadius;
+
+
+                const exitLeft = exit.x * cellSize + cellSize / 2;
+                const exitRight = exit.x * cellSize + cellSize / 2 + cellSize;
+                const exitTop = exit.y * cellSize + cellSize / 2;
+                const exitBottom = exit.y * cellSize + cellSize / 2 + cellSize;
+
+                console.log(playerLeft, playerRight, playerTop, playerBottom);
+                console.log(exitLeft, exitRight, exitTop, exitBottom);
+                return playerRight >= exitLeft &&
+                    playerLeft <= exitRight ||
+                    playerBottom >= exitTop &&
+                    playerTop <= exitBottom;
+            }
+            function startGame() {
+                startModal.classList.add('hidden');
+                gameStarted = true;
+                steps = 0;
+                stepsElement.textContent = steps;
+                timer = 0;
+                timerElement.textContent = '00:00';
+
+
+                playerPath = [{ x: player.x, y: player.y }];
+
+
+                clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    timer++;
+                    const minutes = Math.floor(timer / 60).toString().padStart(2, '0');
+                    const seconds = (timer % 60).toString().padStart(2, '0');
+                    timerElement.textContent = `${minutes}:${seconds}`;
+                }, 1000);
+
+
+                downloadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+
+            function completeGame() {
+                gameCompleted = true;
+                clearInterval(timerInterval);
+
+
+                winModal.classList.remove('hidden');
+                setTimeout(() => {
+                    winModalContent.classList.remove('scale-95', 'opacity-0');
+                    winModalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
+
+
+                finalTimeElement.textContent = timerElement.textContent;
+                finalStepsElement.textContent = steps;
+            }
+
+
+            function restartGame() {
+                winModalContent.classList.remove('scale-100', 'opacity-100');
+                winModalContent.classList.add('scale-95', 'opacity-0');
+
+                setTimeout(() => {
+                    winModal.classList.add('hidden');
+                    gameStarted = false;
+                    gameCompleted = false;
+                    player = { x: 1, y: 1 };
+                    startModal.classList.remove('hidden');
+                    drawMaze();
+                }, 300);
+            }
+
+
+            function generateNewMaze() {
+
+                if (gameStarted) {
+                    clearInterval(timerInterval);
+                }
+
+
+                gameStarted = false;
+                gameCompleted = false;
+
+
+                startModal.classList.add('hidden');
+                winModal.classList.add('hidden');
+
+
+                resizeCanvas();
+
+
+                initMaze();
+
+
+                setTimeout(() => {
+                    startModal.classList.remove('hidden');
+                }, 100);
+
+
+                downloadBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+
+            function downloadMaze() {
+
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+
+
+                tempCtx.drawImage(canvas, 0, 0);
+
+
+                tempCtx.fillStyle = '#1E293B';
+                tempCtx.font = 'bold 24px Inter';
+                tempCtx.textAlign = 'center';
+                tempCtx.fillText('', tempCanvas.width / 2, 30);
+
+
+                tempCtx.font = '16px Inter';
+               
+
+
+                const link = document.createElement('a');
+                link.download = `maze-${mazeShape}-${difficulty}.png`;
+                link.href = tempCanvas.toDataURL('image/png');
+                link.click();
+            }
+
+
+            startBtn.addEventListener('click', startGame);
+            playAgainBtn.addEventListener('click', restartGame);
+            generateBtn.addEventListener('click', generateNewMaze);
+            downloadBtn.addEventListener('click', downloadMaze);
+            downloadWinBtn.addEventListener('click', downloadMaze);
+
+
+            document.addEventListener('keydown', function (e) {
+                switch (e.key) {
+                    case 'ArrowUp':
+                    case 'w':
+                    case 'W':
+                        movePlayer(0, -1);
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                    case 'S':
+                        movePlayer(0, 1);
+                        break;
+                    case 'ArrowLeft':
+                    case 'a':
+                    case 'A':
+                        movePlayer(-1, 0);
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                    case 'D':
+                        movePlayer(1, 0);
+                        break;
+                }
+            });
+
+
+            window.addEventListener('resize', resizeCanvas);
+
+
+            resizeCanvas();
+            initMaze();
+        });
+    </script>
+</body>
+
+</html>

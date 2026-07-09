@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, initial-scale=1.0, viewport-fit=cover">
+    <title>法律条款与隐私政策</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f2f5f9;   
+            font-family: 'Segoe UI', 'Roboto', 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.55;
+            color: #1e2a3e;
+            padding: 40px 24px;
+        }
+
+      
+        .legal-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+       
+        .legal-header {
+            background: linear-gradient(105deg, #0b2b42 0%, #123e5e 100%);
+            padding: 32px 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .legal-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            color: #ffffff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .legal-header h1::before {
+            content: "⚖️";
+            font-size: 28px;
+            font-weight: normal;
+            opacity: 0.9;
+        }
+
+        .legal-sub {
+            font-size: 15px;
+            color: #cbdbe6;
+            opacity: 0.85;
+            font-weight: 400;
+            margin-top: 6px;
+            border-left: 3px solid #3b82f6;
+            padding-left: 14px;
+        }
+
+     
+        .legal-content {
+            padding: 36px 40px 48px;
+        }
+
+       
+        .policy-section {
+            margin-bottom: 42px;
+            border-bottom: 1px solid #eef2f8;
+            padding-bottom: 28px;
+        }
+
+        .policy-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+      
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0a2942;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.3px;
+            border-left: 4px solid #2c6e9e;
+            padding-left: 16px;
+        }
+
+    
+        .notice-content {
+            font-size: 15px;
+            color: #2c3f4f;
+            margin-bottom: 18px;
+            line-height: 1.65;
+            text-align: justify;
+        }
+
+  
+        .notice-content strong {
+            color: #1a4d6b;
+            font-weight: 600;
+        }
+
+  
+        .legal-note {
+            background: #f8fafd;
+            border-radius: 16px;
+            padding: 18px 24px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #2c5a7a;
+            border: 1px solid #e3edf5;
+        }
+
+  
+        .contact-block {
+            background: #f0f4fa;
+            border-radius: 20px;
+            padding: 22px 28px;
+            margin-top: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid #e2ecf5;
+        }
+
+        .contact-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1f4662;
+        }
+
+        .contact-text span {
+            font-weight: 700;
+            color: #0b4870;
+        }
+
+        .contact-badge {
+            background: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e5a7d;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            border: 1px solid #cde0ec;
+        }
+
+       
+        .download-links {
+            margin: 16px 0 8px;
+            padding-left: 2em;
+        }
+        .download-link {
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        .download-link a {
+            color: #2c6e9e;
+            text-decoration: none;
+            border-bottom: 1px dashed #b9d0e4;
+            transition: color 0.2s;
+        }
+        .download-link a:hover {
+            color: #0f4c6f;
+            border-bottom-color: #2c6e9e;
+        }
+
+ 
+        .footer-note {
+            margin-top: 40px;
+            padding-top: 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #6c86a3;
+            border-top: 1px solid #eef2f8;
+        }
+
+   
+        @media (max-width: 720px) {
+            body {
+                padding: 20px 16px;
+            }
+            .legal-header {
+                padding: 24px 24px;
+            }
+            .legal-header h1 {
+                font-size: 22px;
+            }
+            .legal-content {
+                padding: 28px 24px 36px;
+            }
+            .section-title {
+                font-size: 18px;
+            }
+            .contact-block {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+     
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #eef2f8;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #b9cfec;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8eb2cf;
+        }
+    </style>
+</head>
+<body>
+<div class="legal-container">
+    <div class="legal-header">
+        <h1>服务条款 & 隐私政策说明</h1>
+        <div class="legal-sub">即时通讯平台 | 生效日期：2026年2月</div>
+    </div>
+    <div class="legal-content">
+        <div class="policy-section">
+            <div class="section-title">一、服务条款</div>
+            <div class="notice-content">
+                欢迎使用企业级即时通讯平台（以下简称“本平台”）。本服务条款构成您与我们之间具有法律约束力的协议。凡注册、登录或使用本平台任何服务的用户（下称“用户”），均视为已阅读、理解并同意接受本条款的全部内容。若您不同意，请立即停止使用。
+            </div>
+            <div class="notice-content">
+                用户可通过本平台进行一对一即时聊天、多人群组沟通、发送文字/图片/文件等多种形式的消息，并可添加好友、创建及管理群组。您在使用本平台过程中发布、传输的所有内容均须遵守国家法律法规，不得含有任何违法、色情、暴力、诽谤、侮辱、恐怖主义、危害国家安全及社会稳定的信息，亦不得侵犯任何第三方的知识产权、商业秘密、肖像权与隐私权等合法权益。
+            </div>
+            <div class="notice-content">
+                用户应严格遵守平台使用规范，不得利用本平台从事任何违法犯罪活动，包括但不限于传播恶意软件、钓鱼链接、垃圾广告、骚扰信息，不得以任何非法手段获取其他用户的个人信息，不得干扰、破坏平台正常运营或侵害其他用户的正常使用权利。若发现用户存在违规行为，我们有权依据情节严重程度采取警示、功能限制、临时冻结账号、永久注销账号等处置措施，并保留向有关监管部门及司法机关举报的权利。
+            </div>
+            <div class="notice-content">
+                本平台致力于为用户提供稳定、安全的通讯服务，并保留根据业务发展需要适时调整服务内容、功能模块或界面布局的权利。如有重大变更，我们将通过平台公告、站内信或电子邮件等方式提前告知用户。如用户对调整后的服务有异议，可主动停止使用本平台服务；若继续使用，则视为已接受调整后的服务内容与规则。
+            </div>
+        </div>
+
+    
+        <div class="policy-section">
+            <div class="section-title">二、隐私政策</div>
+            <div class="notice-content">
+                我们高度重视并尊重您的个人隐私，承诺遵循《中华人民共和国个人信息保护法》《中华人民共和国网络安全法》及相关法律法规，以合法、正当、必要和诚信的原则收集、使用和保护用户个人信息。本隐私政策旨在向您清晰说明我们如何处理您的信息。
+            </div>
+            <div class="notice-content">
+                <strong>1. 信息收集范围：</strong> 为实现IM平台基础功能，我们可能收集您注册时提供的昵称、手机号码、邮箱地址、头像等身份信息；以及您在使用服务过程中产生的聊天记录、好友列表、群组信息、发送的文件/图片等内容数据，同时为保障服务稳定与安全，还会收集设备型号、操作系统版本、IP地址、登录日志、使用时长等设备及行为信息。
+            </div>
+            <div class="notice-content">
+                <strong>2. 信息使用方式：</strong> 收集的信息仅用于身份验证、消息投递、好友管理、群组功能、客户支持、安全风控、服务优化及个性化体验提升。我们不会将您的个人信息用于超出本隐私政策声明以外的用途，也不会未经您明示同意向任何第三方共享、转让或公开披露，但法律法规另有规定或司法机关/行政机关依法要求的情形除外。
+            </div>
+            <div class="notice-content">
+                <strong>3. 安全保障措施：</strong> 我们采用符合业界标准的加密传输（TLS协议）、数据脱敏、权限管控、访问审计等技术手段，构建全面的数据安全体系，防止您的个人信息遭受未经授权的访问、泄露、篡改或损毁。同时我们定期开展安全风险评估，持续改进防护能力。
+            </div>
+            <div class="notice-content">
+                <strong>4. 用户权利：</strong> 您有权就个人信息行使查阅、复制、更正、补充、删除等权利，也可申请注销账号。若您发现个人信息存在错误或被违规处理，可通过官方客服渠道联系我们，我们将在15个工作日内完成核查与反馈。同时，我们将严格限定委托第三方服务商（如云服务商、推送技术服务商）处理信息的范围，并要求其承担同等级别的保密与安全义务。
+            </div>
+        </div>
+
+   
+        <div class="policy-section">
+            <div class="section-title">三、免责声明</div>
+            <div class="notice-content">
+                因不可抗力事件（包括但不限于自然灾害、战争、罢工、政府行为、政策法规调整）或非因我们过错导致的计算机病毒、网络故障、黑客攻击、电信部门技术调整、运营商网络中断等不可控因素，致使平台服务中断、延迟、数据丢失或用户信息损坏的，我们在法律允许的最大范围内不承担赔偿责任，但将采取合理措施尽可能减少用户损失并及时修复服务。
+            </div>
+            <div class="notice-content">
+                用户通过本平台与其他用户之间产生的任何争议（包括但不限于言论冲突、信息泄露纠纷、交易纠纷等），由纠纷各方自行协商解决，我们不承担任何法律责任。在符合法律规定及隐私保护原则的前提下，我们可根据司法或行政指令，或基于用户合法请求提供必要的技术协助（如提供经合规流程审批的聊天记录证据）。
+            </div>
+            <div class="notice-content">
+                用户自行上传、传输、分享的任何内容，我们仅提供信息存储空间与传输通道服务，不对内容的真实性、合法性、准确性、完整性承担担保责任。因用户发布内容侵犯第三方合法权益所引发的一切索赔、诉讼、处罚及法律责任，均由内容发布者独立承担，与本平台无关。
+            </div>
+        </div>
+
+  
+        <div class="policy-section">
+            <div class="section-title">四、其他说明</div>
+            <div class="notice-content">
+                本服务条款及隐私政策的解释、修订及效力均以我们官方发布为准。如您对本条款或隐私政策存在任何疑问、投诉或建议，欢迎通过官方客服渠道与我们取得联系。我们重视每一位用户的意见，并将在合理期限内响应。
+            </div>
+            <div class="notice-content">
+                本条款自发布之日起生效，并将根据国家法律法规的更新或平台业务策略调整进行不定期修订。修订后的条款将以显著方式（如平台公告、弹窗提醒等）提前告知用户，若您不同意修订后的内容，请立即停止使用本平台服务；继续使用即视为同意修订后的全部内容。
+            </div>
+            <div class="legal-note">
+                📌 重要提示：本平台提供企业级即时通讯解决方案，秉持“合法、透明、安全”的原则，我们强烈建议您仔细阅读完整条款，确保自身合法权益。对于未成年人使用本平台，应征得监护人同意并在监护人指导下使用。
+            </div>
+        </div>
+
+       
+    </div>
+</div>
+</body>
+</html>

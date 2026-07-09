@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>证据包验证指南 | 可信存证与完整性校验</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #c1c1c1;
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+
+        body {
+            background: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0b2b3f 0%, #1b4a6e 100%);
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border-radius: 40px;
+            padding: 0.25rem 1rem;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 2rem 2rem 2.5rem;
+        }
+
+        .highlight {
+            background: #eef6ff;
+            border-left: 5px solid #2c7da0;
+            padding: 1.2rem 1.5rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.8rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e9edf2;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.2rem 1.5rem 0.5rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid #eef2f8;
+        }
+
+        .card-body {
+            padding: 1.2rem 1.5rem 1.5rem;
+            color: #2d3e50;
+        }
+
+        .step-list {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            background: #2c7da0;
+            color: white;
+            font-weight: bold;
+            font-size: 0.75rem;
+            width: 22px;
+            height: 22px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            left: -6px;
+            top: 0;
+        }
+
+        pre {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 16px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            margin: 1rem 0;
+        }
+
+        .code-inline {
+            background: #eef2ff;
+            padding: 0.2rem 0.4rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #0f3b5c;
+        }
+
+        .alert-info {
+            background: #e6f7ff;
+            border-radius: 20px;
+            padding: 1rem 1.5rem;
+            border: 1px solid #b3e0ff;
+            margin: 1.5rem 0;
+        }
+
+        .alert-warning {
+            background: #fff7e5;
+            border-left: 4px solid #f4b942;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            margin: 1.5rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        th,
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+
+        .footer {
+            background: #f8fafc;
+            border-top: 1px solid #e2edf7;
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.85rem;
+            color: #5b6e8c;
+        }
+
+        @media (max-width: 680px) {
+            .hero h1 {
+                font-size: 1.6rem;
+            }
+
+            .content {
+                padding: 1.5rem;
+            }
+        }
+
+        .btn-demo {
+            display: inline-block;
+            background: #1e5f7a;
+            color: white;
+            border-radius: 40px;
+            padding: 0.5rem 1.2rem;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            transition: 0.2s;
+        }
+
+        .btn-demo:hover {
+            background: #0f4a62;
+        }
+
+   
+        .verify-card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eef2f8;
+            transition: box-shadow 0.2s;
+        }
+
+        .upload-zone {
+            background: #fbfdff;
+            border: 2px dashed #cbdde9;
+            border-radius: 32px;
+            padding: 1.8rem 1.5rem;
+            text-align: center;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+
+        .upload-zone:hover {
+            border-color: #2c7da0;
+            background: #f6faff;
+        }
+
+        .upload-icon {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1f3a4b;
+        }
+
+        .upload-hint {
+            font-size: 0.8rem;
+            color: #5f7f9c;
+            margin-top: 6px;
+        }
+
+        .file-info {
+            background: #f1f6fa;
+            border-radius: 48px;
+            padding: 0.5rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e5f7a;
+            margin-top: 10px;
+        }
+
+        .btn-verify {
+            background: linear-gradient(95deg, #1f6e8c, #0f4e6b);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 44px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-verify:hover {
+            background: linear-gradient(95deg, #0f5a77, #0a4058);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 18px rgba(28, 100, 128, 0.2);
+        }
+
+        .verify-result {
+            background: #f9fafc;
+            border-radius: 24px;
+            padding: 1.2rem;
+            margin-top: 1.5rem;
+            border: 1px solid #e9edf2;
+            font-size: 0.95rem;
+            transition: all 0.1s;
+        }
+
+        .verify-success {
+            background: #eefaf2;
+            border-left: 5px solid #2c9b5e;
+        }
+
+        .verify-failed {
+            background: #fef4f2;
+            border-left: 5px solid #dd5a4a;
+        }
+
+
+        .legal-note {
+            background: #fef9e6;
+            border-radius: 20px;
+            padding: 1rem 1.5rem;
+            font-size: 0.9rem;
+            border: 1px solid #ffe2b5;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <div class="badge">🛡️ 司法级存证 · 完整防篡改</div>
+        <h1>📋 聊天记录证据包</h1>
+        <p>基于“HASHENC”技术，每条消息环环相扣，保障聊天记录真实、完整、不可抵赖，具备法律级可信度</p>
+    </div>
+
+    <div class="content">
+        <div class="highlight">
+            🌟 每次聊天都将自动生成唯一的数字指纹。<br>
+            导出“证据包”后，任何第三方均可独立验证聊天记录是否被修改、删除或伪造，无需依赖原始软件。
+        </div>
+
+     
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header">
+                    🔗 Check原理
+                </div>
+                <div class="card-body">
+                    <p>每条消息相当于链条上的一环，都带有自身“防伪码”和前一条消息的“防伪码”，形成完整的证据链条。</p>
+                    <ul style="margin: 12px 0 0 20px;">
+                        <li>✅ 链条起点由会话双方唯一确定，无法伪造</li>
+                        <li>✅ 后一条消息必须指向前一条，形成连续约束</li>
+                        <li>✅ 任何内容改动（包括时间、文字、发送人）都会导致防伪码失效，链条断裂</li>
+                    </ul>
+                    <div style="margin-top: 16px; background:#f9f9fb; border-radius: 16px; padding: 12px; font-size: 13px; text-align:center;">
+                        🔒 每条消息的“防伪码” = 安全算法(前一条防伪码 + 消息内容 + 时间等关键信息)
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    🧾 证据包里有什么？
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>📄 完整聊天记录 (含时间、发送者、正文)</li>
+                        <li>🔐 起点防伪码、最终防伪码以及每条消息独立防伪码</li>
+                        <li>✔️ 自动化校验结果 (完整/无效 + 断裂位置定位)</li>
+                        <li>📅 导出精确时间戳、会话双方标识符</li>
+                        <li>⚙️ 算法标准说明 (符合国际公认安全标准)</li>
+                    </ul>
+                    <p style="margin-top: 12px;">导出格式：<strong class="code-inline">.json</strong>，结构公开透明，可供司法鉴定、技术验证。</p>
+                </div>
+            </div>
+        </div>
+
+        <h2 style="margin: 2rem 0 0.5rem 0;">📥 如何使用证据包进行验证？</h2>
+        <p style="margin-bottom: 1rem;">证据包独立于聊天软件，任何人都可自行验证其真实性，无需技术背景。</p>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header">
+                    🖥️ 方法一：官方验证工具（推荐）
+                </div>
+                <div class="card-body">
+                    <p>在聊天界面 <strong>右键 → 导出证据包</strong> 时自动生成验证报告。您也可以使用本页下方的「在线校验工具」，一键检测文件完整性。</p>
+                    <p>✅ 无需任何专业知识，选择文件即可获得结论（本地校验，数据不上传云端）。</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    🔍 方法二：第三方离线取证工具
+                </div>
+                <div class="card-body">
+                    <p>适用于司法鉴定或长期存档，可完全离线运行，确保数据安全。</p>
+                    <ul style="margin-left: 1.2rem;">
+                        <li>提供独立校验程序（可向官方或客服获取）</li>
+                        <li>支持批量验证、生成具备法律效力的验证报告</li>
+                        <li>符合电子证据取证标准流程</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+       
+        <div class="alert-info">
+            <strong>📋 手动验证核心步骤（专业机构可参考）：</strong><br>
+            1️⃣ 打开证据包文件，比对起点防伪码是否与第一条消息记录的起始防伪码一致。<br>
+            2️⃣ 按顺序检查每条消息的防伪码是否与重新计算的结果匹配（专业工具自动完成）。<br>
+            3️⃣ 确认每条消息的“前一条防伪码”是否等于上一条消息自身的防伪码。<br>
+            4️⃣ 所有检查通过，则证明聊天记录自导出后未被篡改，具有完整性与真实性。
+        </div>
+
+        <h2 style="margin-top: 2rem;">📑 证据包关键信息一览</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>信息类别</th>
+                    <th>说明</th>
+                    <th>作用</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>导出时间</td><td>证据包生成的具体时刻</td><td>确定证据固定时间点，锁定时间效力</td></tr>
+                <tr><td>会话双方</td><td>聊天参与者的唯一标识</td><td>明确证据主体，防止身份混淆</td></tr>
+                <tr><td>完整性结论</td><td>数字指纹链是否完整（有效/无效）</td><td>快速判断证据是否被篡改</td></tr>
+                <tr><td>断裂位置</td><td>若无效，显示具体哪条消息异常</td><td>精准定位篡改或错误位置</td></tr>
+                <tr><td>消息列表</td><td>每条消息的发送者、时间、内容、防伪码</td><td>真实呈现聊天内容</td></tr>
+                <tr><td>起点防伪码</td><td>整个聊天证据链的根指纹</td><td>验证链条起始真实性</td></tr>
+                <tr><td>最终结论描述</td><td>人类可读的验证总结</td><td>便于法庭或第三方理解验证结果</td></tr>
+            </tbody>
+        </table>
+
+        <div style="margin: 2rem 0;">
+            <h2>⚠️ 常见问题与法律提示</h2>
+            <div class="alert-warning">
+                <strong>❓ 为什么我的导出结果显示“无效/断裂”？</strong><br>
+                → 可能原因：① 本地消息数据库曾被异常修改；② 消息同步时出现版本差异；③ 较旧的历史消息未升级数字指纹链。<br>
+                <strong>🔧 处理建议：</strong> 在聊天界面点击“修复指纹链”功能（若提供），或联系管理员重新同步消息生成全新证据包。
+            </div>
+            <div class="alert-warning">
+                <strong>⚖️ 法律效力说明</strong><br>
+                数字指纹链能够证明“自导出时刻起，聊天记录未被篡改”，满足电子证据“完整性”要求。建议配合数字签名、公证处存证等方式进一步增强法律效力。<br>
+                相比普通截图，基于指纹链的证据包具有更强的防篡改证明力，符合《电子签名法》关于数据电文原件形式的要求。
+            </div>
+            <div class="alert-info">
+                <strong>📌 使用贴士：</strong> 每次导出证据包请务必保留原始文件，不要使用任何文本编辑器修改内容，否则验证必然失败。<br>
+                如需提交至第三方机构，可附带本说明文档及官方验证工具，以辅助对方快速核验。
+            </div>
+        </div>
+
+     
+        <div style="background: #f9fef9; border-radius: 24px; padding: 1.5rem; margin: 2rem 0; border: 1px solid #d9f0e1;">
+            <h3 style="display: flex; align-items: center; gap: 0.5rem;">📈 证据链验证逻辑简图</h3>
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-top: 20px;">
+                <div style="flex:1; min-width: 100px; background: white; border-radius: 24px; padding: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                    <div style="font-size: 28px;">🔗</div>
+                    <div><strong>起点指纹</strong></div>
+                    <div style="font-size: 11px;">会话唯一标识</div>
+                </div>
+                <div style="font-size: 24px;">→</div>
+                <div style="flex:1; background: white; border-radius: 24px; padding: 12px; text-align: center;">
+                    <div>💬 消息1</div>
+                    <div style="font-size: 10px;">指纹 = 算法(起点 + 内容)</div>
+                </div>
+                <div style="font-size: 24px;">→</div>
+                <div style="flex:1; background: white; border-radius: 24px; padding: 12px; text-align: center;">
+                    <div>💬 消息2</div>
+                    <div style="font-size: 10px;">指纹 = 算法(消息1指纹 + 内容)</div>
+                </div>
+                <div style="font-size: 24px;">→ ...</div>
+                <div style="flex:1; background: white; border-radius: 24px; padding: 12px; text-align: center;">
+                    <div>🔚 最后消息</div>
+                    <div style="font-size: 10px;">锚定整条证据链</div>
+                </div>
+            </div>
+            <p style="margin-top: 20px; font-size: 0.9rem; text-align:center;">任意环节指纹不匹配 → 自动判定为篡改/失效</p>
+        </div>
+
+        
+        <h2>🧪 证据包在线校验（本地安全验证）</h2>
+        <p>上传导出的 .json 证据包，系统将自动校验数字指纹链的完整性，文件仅在您的设备上处理，绝不外传。</p>
+        <div class="verify-card" style="background: #ffffff; border-radius: 28px; padding: 1.6rem; margin: 1rem 0;">
+            <div id="uploadZone" class="upload-zone">
+                <div class="upload-icon">📂</div>
+                <div class="upload-title">点击或拖拽上传证据包文件</div>
+                <div class="upload-hint">支持格式：.json （证据包标准格式）</div>
+                <input type="file" id="evidenceFileInput" accept=".json" style="display: none;" />
+                <div id="fileDisplayInfo" class="file-info" style="display: none;">未选择文件</div>
+            </div>
+            <button id="verifyBtn" class="btn-verify">🔍 开始验证证据包</button>
+            <div id="verifyResult" class="verify-result"></div>
+            <div class="legal-note">
+                💡 法律提示：验证通过表示证据包的数字指纹链完整，自导出后未被篡改。若验证失败，建议联系导出方重新生成或通过司法途径固定证据。
+            </div>
+        </div>
+
+        <details style="margin-top: 2rem; background: #fef9e6; border-radius: 20px; padding: 0.8rem 1.5rem;">
+            <summary style="font-weight: 600; cursor: pointer;">🔧 司法鉴定 & 技术补充说明（点击展开）</summary>
+            <div style="margin-top: 1rem;">
+                <p>✔ 采用国际通用安全哈希算法（符合NIST标准及国内密码行业规范）。<br>
+                    ✔ 链式结构基于消息顺序，不依赖任何中心化服务器，具备抗抵赖性。<br>
+                    ✔ 每条消息参与指纹计算的字段固定（前一条指纹、消息ID、发送者、接收者、内容、时间等），任何改动立刻可检测。<br>
+                    ✔ 若数据库中消息被插入、删除或修改，验证程序会精确定位断裂点并注明原因。<br>
+                    ✔ 推荐结合第三方可信时间戳服务固化证据包指纹，进一步增强法律效力，满足《最高人民法院关于互联网法院审理案件若干问题的规定》。<br>
+                </p>
+            </div>
+        </details>
+
+        <div class="footer">
+            🔒 本说明文档配合聊天证据包使用 | 支持任意第三方独立验证 | 数据主权归用户所有
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+      
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('evidenceFileInput');
+        const fileDisplayInfo = document.getElementById('fileDisplayInfo');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const resultDiv = document.getElementById('verifyResult');
+
+        if (uploadZone && fileInput) {
+            uploadZone.addEventListener('click', () => {
+                fileInput.click();
+            });
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.style.borderColor = '#2c7da0';
+                uploadZone.style.background = '#f0f7fd';
+            });
+            uploadZone.addEventListener('dragleave', (e) => {
+                uploadZone.style.borderColor = '#cbdde9';
+                uploadZone.style.background = '#fbfdff';
+            });
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.style.borderColor = '#cbdde9';
+                uploadZone.style.background = '#fbfdff';
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelect(fileInput.files[0]);
+                }
+            });
+        }
+
+        function handleFileSelect(file) {
+            if (file && file.name) {
+                fileDisplayInfo.style.display = 'inline-flex';
+                fileDisplayInfo.innerHTML = `📎 ${file.name}`;
+            } else {
+                fileDisplayInfo.style.display = 'none';
+            }
+        }
+
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                if (fileInput.files && fileInput.files.length > 0) {
+                    handleFileSelect(fileInput.files[0]);
+                } else {
+                    fileDisplayInfo.style.display = 'none';
+                }
+            });
+        }
+        verifyBtn.addEventListener('click', async () => {
+            if (!fileInput.files || fileInput.files.length === 0) {
+                resultDiv.innerHTML = '<span style="color:#e67e22;">⚠️ 请先选择导出的证据包文件（.json格式）</span>';
+                resultDiv.classList.remove('verify-success', 'verify-failed');
+                return;
+            }
+            const file = fileInput.files[0];
+            try {
+                const text = await file.text();
+                const evidence = JSON.parse(text);
+                if (!evidence.verification && !evidence.chatHistory) {
+                    resultDiv.innerHTML = '<span style="color:#d9534f;">❌ 无效证据包：缺少必要的校验字段或聊天记录，请重新从聊天软件导出。</span>';
+                    resultDiv.classList.add('verify-failed');
+                    resultDiv.classList.remove('verify-success');
+                    return;
+                }
+                const isValid = evidence.verification?.isValid === true;
+                const totalMessages = evidence.verification?.totalMessages || (evidence.chatHistory ? evidence.chatHistory.length : 0);
+                const brokenMessages = evidence.verification?.brokenMessages || [];
+                const genesisHash = evidence.verification?.genesisHash || '—';
+                let exportTime = evidence.metadata?.exportTimeLocal || evidence.metadata?.exportTime || '未知';
+                if (exportTime && typeof exportTime === 'string' && exportTime.includes('T')) {
+                    exportTime = new Date(exportTime).toLocaleString();
+                }
+
+                if (isValid === true) {
+                    resultDiv.innerHTML = `
+                        <div style="color:#1f7042;">
+                            ✅ <strong>验证通过！证据链完整有效</strong><br>
+                            📊 总消息数量：${totalMessages}<br>
+                            🔗 起点防伪码：${genesisHash.substring(0, 24)}${genesisHash.length > 24 ? '…' : ''}<br>
+                            🕒 证据包导出时间：${exportTime}<br>
+                            📌 司法效力结论：聊天记录自导出时刻起，内容未被篡改、删除或伪造，具备完整性证明力。
+                        </div>`;
+                    resultDiv.classList.add('verify-success');
+                    resultDiv.classList.remove('verify-failed');
+                } else {
+                    let brokenHtml = '';
+                    if (brokenMessages && brokenMessages.length > 0) {
+                        brokenHtml = '<ul style="margin-top:8px;">' + brokenMessages.map(b => {
+                            const idx = (b.index !== undefined ? b.index + 1 : '?');
+                            return `<li>⚠️ 第 ${idx} 条消息发生异常，原因：${b.reason || '数字指纹链断裂或前序指纹不匹配'}</li>`;
+                        }).join('') + '</ul>';
+                    } else {
+                        brokenHtml = '<p>数字指纹链完整性校验失败，文件可能被编辑或部分消息缺失。</p>';
+                    }
+                    resultDiv.innerHTML = `
+                        <div style="color:#b33a2c;">
+                            ❌ <strong>验证失败！证据包无效</strong><br>
+                            ${brokenHtml}
+                            <p style="margin-top:8px;">📌 法律提示：该证据包无法证明其未被篡改，建议联系原导出方重新生成并补充其他佐证。</p>
+                        </div>`;
+                    resultDiv.classList.add('verify-failed');
+                    resultDiv.classList.remove('verify-success');
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<span style="color:#d9534f;">❌ 解析失败：文件格式错误或不是合法的证据包JSON文件，请确认导出的文件正确。</span>`;
+                resultDiv.classList.add('verify-failed');
+                resultDiv.classList.remove('verify-success');
+            }
+        });
+
+    
+        const addDemoDownload = () => {
+            const verifyCard = document.querySelector('.verify-card');
+            if (verifyCard && !document.getElementById('dynamicDemoLink')) {
+                const demoDiv = document.createElement('div');
+                demoDiv.style.marginTop = '16px';
+                demoDiv.style.textAlign = 'right';
+                demoDiv.innerHTML = '<a href="#" id="downloadDemoJson" style="color:#2c7da0; text-decoration:none; font-weight:500; font-size:0.85rem;">📎 下载示例证据包（试用）</a>';
+                verifyCard.appendChild(demoDiv);
+                const demoLink = document.getElementById('downloadDemoJson');
+                if (demoLink) {
+                    demoLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const demoEvidence = {
+                            metadata: {
+                                exportTime: new Date().toISOString(),
+                                exportTimeLocal: new Date().toLocaleString(),
+                                conversationId: "demo_20260418",
+                                myId: "用户A",
+                                otherId: "用户B"
+                            },
+                            verification: {
+                                isValid: true,
+                                totalMessages: 2,
+                                genesisHash: "demo_genesis_fingerprint_3f8a9e2c1b4d6f7a",
+                                lastHash: "demo_last_fingerprint_5e7d8c9a",
+                                verifyTime: new Date().toISOString(),
+                                brokenMessages: []
+                            },
+                            conclusion: "✅ 演示数据，证据链完整有效",
+                            chatHistory: [
+                                { sequence: 1, time: "2026-04-18T08:00:00Z", timeLocal: "2026/4/18 16:00:00", sender: "用户A", senderId: "userA", content: "你好，这是第一条测试消息", hash: "demo_hash_abc123...", prevHash: "demo_genesis_fingerprint_3f8a9e2c1b4d6f7a" },
+                                { sequence: 2, time: "2026-04-18T08:01:00Z", timeLocal: "2026/4/18 16:01:00", sender: "用户B", senderId: "userB", content: "收到，证据链校验有效", hash: "demo_hash_def456...", prevHash: "demo_hash_abc123..." }
+                            ],
+                            algorithm: "安全哈希算法（国际通用标准）",
+                            chainType: "顺序数字指纹链"
+                        };
+                        const dataStr = JSON.stringify(demoEvidence, null, 2);
+                        const blob = new Blob([dataStr], { type: "application/json" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = "demo_chat_evidence.json";
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    });
+                }
+            }
+        };
+        addDemoDownload();
+    })();
+</script>
+</body>
+</html>

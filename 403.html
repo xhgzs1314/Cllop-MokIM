@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 - 禁止访问</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            color: #333;
+            padding: 20px;
+        }
+
+        .error-container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .error-code {
+            font-size: 12rem;
+            font-weight: 700;
+            color: #e6a23c;
+            margin-bottom: 20px;
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .error-message {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: #666;
+        }
+
+        .error-desc {
+            font-size: 1rem;
+            color: #999;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .btn-home {
+            padding: 12px 30px;
+            background-color: #e6a23c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 15px;
+        }
+
+        .btn-contact {
+            padding: 12px 30px;
+            background-color: transparent;
+            color: #e6a23c;
+            border: 1px solid #e6a23c;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-home:hover {
+            background-color: #d48806;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(230, 162, 60, 0.3);
+        }
+
+        .btn-contact:hover {
+            background-color: #fdf6ec;
+            transform: translateY(-2px);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+     
+        @media (max-width: 768px) {
+            .error-code {
+                font-size: 8rem;
+            }
+            .error-message {
+                font-size: 1.2rem;
+            }
+            .btn-home, .btn-contact {
+                display: block;
+                margin: 0 auto 15px;
+                width: 80%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .error-code {
+                font-size: 6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code">403</div>
+        <div class="error-message">抱歉，你没有访问权限 🚫</div>
+        <div class="error-desc">
+            你当前的账号权限不足，无法访问该页面。<br>
+            如需访问，请联系管理员获取相应权限。
+        </div>
+        <a href="/" class="btn-home">返回首页</a>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            const container = document.querySelector('.error-container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+            container.style.transition = 'all 0.6s ease';
+            
+            setTimeout(() => {
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+.remotio_pas_modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', 'PingFang SC', Roboto, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0.2s ease, opacity 0.2s ease;
+}
+
+.remotio_pas_modal_overlay.remotio_pas_show {
+    visibility: visible;
+    opacity: 1;
+}
+
+
+.remotio_pas_modal_container {
+    width: 90%;
+    max-width: 1200px;
+    height: auto;
+    max-height: 85vh;
+    background: #1a1e2c;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    transform: scale(0.96);
+}
+
+.remotio_pas_show .remotio_pas_modal_container {
+    transform: scale(1);
+}
+
+
+.remotio_pas_video_stage {
+    position: relative;
+    background-color: #0b0e14;
+    flex: 1;
+    min-height: 400px;
+    background-image: radial-gradient(circle at 25% 40%, rgba(45, 55, 80, 0.6) 2%, transparent 2.5%);
+    background-size: 28px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.remotio_pas_remote_video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+    display: block;
+}
+
+
+.remotio_pas_local_video_wrapper {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 180px;
+    height: 120px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    background: #2a2f3f;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.remotio_pas_local_video_wrapper:hover {
+    border-color: #3b82f6;
+    transform: scale(1.02);
+}
+
+.remotio_pas_local_video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #1e2436;
+    display: block;
+}
+
+
+.remotio_pas_video_placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #8e9aaf;
+    font-size: 1.1rem;
+    gap: 12px;
+    background: #141824;
+    width: 100%;
+    height: 100%;
+}
+
+.remotio_pas_video_placeholder i {
+    font-size: 64px;
+    opacity: 0.5;
+}
+
+
+.remotio_pas_call_info {
+    position: absolute;
+    top: 20px;
+    left: 24px;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(10px);
+    padding: 6px 14px;
+    border-radius: 40px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+
+.remotio_pas_controls_bar {
+    background: rgba(18, 22, 35, 0.95);
+    backdrop-filter: blur(16px);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.remotio_pas_control_btn {
+    background: #2c3146;
+    border: none;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #f0f3fa;
+    font-size: 26px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.remotio_pas_control_btn:hover {
+    background: #3e445e;
+    transform: scale(1.05);
+}
+
+.remotio_pas_control_btn:active {
+    transform: scale(0.96);
+}
+
+
+.remotio_pas_end_call_btn {
+    background: #e53e3e;
+    color: white;
+    width: 64px;
+    height: 64px;
+    font-size: 28px;
+    box-shadow: 0 0 12px rgba(229, 62, 62, 0.5);
+}
+
+.remotio_pas_end_call_btn:hover {
+    background: #c53030;
+    transform: scale(1.05);
+}
+
+
+.remotio_pas_control_btn.remotio_pas_muted,
+.remotio_pas_control_btn.remotio_pas_video_off {
+    background: #4a2e2e;
+    color: #ffb4a2;
+}
+
+
+.remotio_pas_tooltip {
+    font-size: 12px;
+    margin-top: 6px;
+    color: #b9c3db;
+    text-align: center;
+}
+
+
+@media (max-width: 640px) {
+    .remotio_pas_local_video_wrapper {
+        width: 120px;
+        height: 80px;
+        bottom: 12px;
+        right: 12px;
+    }
+
+    .remotio_pas_control_btn {
+        width: 48px;
+        height: 48px;
+        font-size: 22px;
+    }
+
+    .remotio_pas_end_call_btn {
+        width: 56px;
+        height: 56px;
+        font-size: 26px;
+    }
+
+    .remotio_pas_controls_bar {
+        gap: 20px;
+        padding: 14px 16px;
+    }
+}

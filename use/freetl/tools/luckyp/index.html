@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幸运大转盘</title>
+    <script src="/ast/3.4.17"></script>
+    <link href="/ast/fontawe/css/all.min.css" rel="stylesheet">
+
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#F97316',
+                        accent: '#8B5CF6',
+                        neutral: '#1F2937',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .rotate-reset {
+                transform: rotate(0deg);
+                transition: transform 0.5s ease-out;
+            }
+        }
+    </style>
+    <style>
+        ::-webkit-scrollbar{
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-sans">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+
+        <header class="text-center mb-10">
+            <h1
+                class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-neutral bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent mb-3">
+                幸运大转盘
+            </h1>
+            <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+                想不到吃什么、拿不定注意就用我吧~
+            </p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow-xl p-6 relative overflow-hidden">
+                <div class="aspect-square max-w-2xl mx-auto relative">
+
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <canvas id="wheel" class="rounded-full shadow-lg"></canvas>
+
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                            <div class="w-12 h-12 bg-white rounded-full shadow-md flex items-center justify-center">
+                                <div
+                                    class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white">
+                                    <i class="fa fa-bolt text-xl"></i>
+                                </div>
+                            </div>
+
+                            <div
+                                class="absolute -top-6 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-b-12 border-l-transparent border-r-transparent border-b-primary">
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 -translate-y-4 z-20">
+                        <button id="spin-btn"
+                            class="bg-secondary hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-orange-300 flex items-center">
+                            <i class="fa fa-refresh mr-2"></i> 开始抽奖
+                        </button>
+                    </div>
+                </div>
+
+
+                <div id="result" class="mt-8 text-center hidden">
+                    <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg shadow-sm">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fa fa-trophy text-2xl text-green-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-green-800">恭喜您获得</p>
+                                <p id="result-text" class="text-lg font-semibold text-green-900"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <h2 class="text-xl font-bold text-neutral mb-4 flex items-center">
+                    <i class="fa fa-cog text-primary mr-2"></i> 转盘配置
+                </h2>
+
+
+                <div class="mb-6">
+                    <form id="add-option-form" class="space-y-4">
+                        <div>
+                            <label for="option-name" class="block text-sm font-medium text-gray-700 mb-1">选项名称</label>
+                            <input type="text" id="option-name"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                placeholder="例如：一等奖" required>
+                        </div>
+
+                        <div>
+                            <label for="option-weight"
+                                class="block text-sm font-medium text-gray-700 mb-1">权重（概率）</label>
+                            <input type="number" id="option-weight" min="1" value="1"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                placeholder="权重越高，中奖概率越大" required>
+                        </div>
+
+                        <div>
+                            <label for="option-color" class="block text-sm font-medium text-gray-700 mb-1">选项颜色</label>
+                            <input type="color" id="option-color" value="#3B82F6"
+                                class="w-full h-10 border border-gray-300 rounded-lg cursor-pointer">
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-primary hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg shadow transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-plus mr-2"></i> 添加选项
+                        </button>
+                    </form>
+                </div>
+
+
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                        <i class="fa fa-list-ul text-primary mr-2"></i> 已添加选项
+                    </h3>
+
+                    <div id="options-list" class="space-y-2 max-h-72 overflow-y-auto pr-2">
+
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <button id="reset-wheel"
+                            class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg shadow transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-refresh mr-2"></i> 重置转盘
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+           
+            let wheelOptions = [
+                { name: '大猪蹄子', weight: 1, color: '#F97316' },
+                { name: '红烧肉', weight: 2, color: '#8B5CF6' },
+                { name: '牛排', weight: 3, color: '#EC4899' },
+                { name: '米粉', weight: 4, color: '#6B7280' }
+            ];
+
+
+            const canvas = document.getElementById('wheel');
+            const ctx = canvas.getContext('2d');
+            const spinBtn = document.getElementById('spin-btn');
+            const result = document.getElementById('result');
+            const resultText = document.getElementById('result-text');
+            const addOptionForm = document.getElementById('add-option-form');
+            const optionsList = document.getElementById('options-list');
+            const resetWheel = document.getElementById('reset-wheel');
+
+
+            function setupCanvas() {
+                const container = canvas.parentElement;
+                const size = Math.min(container.clientWidth, 600);
+                canvas.width = size;
+                canvas.height = size;
+            }
+
+
+            setupCanvas();
+            window.addEventListener('resize', setupCanvas);
+            drawWheel();
+            renderOptionsList();
+
+
+            function drawWheel() {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = Math.min(centerX, centerY) - 20;
+
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (wheelOptions.length === 0) {
+                    ctx.fillStyle = '#f3f4f6';
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#6b7280';
+                    ctx.font = 'bold 16px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('请添加转盘选项', centerX, centerY);
+                    return;
+                }
+
+
+                const totalWeight = wheelOptions.reduce((sum, option) => sum + option.weight, 0);
+
+
+                let startAngle = 0;
+
+                wheelOptions.forEach((option, index) => {
+                    const sliceAngle = (Math.PI * 2 * option.weight) / totalWeight;
+                    const endAngle = startAngle + sliceAngle;
+
+
+                    ctx.fillStyle = option.color;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+
+                    const textAngle = startAngle + sliceAngle / 2;
+                    const textRadius = radius * 0.75;
+                    const textX = centerX + textRadius * Math.cos(textAngle);
+                    const textY = centerY + textRadius * Math.sin(textAngle);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 14px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+
+                    ctx.save();
+                    ctx.translate(textX, textY);
+                    ctx.rotate(textAngle + Math.PI / 2);
+                    ctx.fillText(option.name, 0, 0);
+                    ctx.restore();
+
+                    startAngle = endAngle;
+                });
+
+
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+
+            function renderOptionsList() {
+                optionsList.innerHTML = '';
+
+                if (wheelOptions.length === 0) {
+                    optionsList.innerHTML = '<div class="text-gray-500 italic text-center py-4">尚未添加任何选项</div>';
+                    return;
+                }
+
+                wheelOptions.forEach((option, index) => {
+                    const optionElement = document.createElement('div');
+                    optionElement.className = 'bg-gray-50 p-3 rounded-lg flex items-center justify-between shadow-sm hover:shadow transition-all';
+
+                    optionElement.innerHTML = `
+                        <div class="flex items-center">
+                            <div class="w-6 h-6 rounded-full mr-3" style="background-color: ${option.color}"></div>
+                            <div>
+                                <p class="font-medium text-gray-900">${option.name}</p>
+                                <p class="text-sm text-gray-500">权重: ${option.weight}</p>
+                            </div>
+                        </div>
+                        <button class="delete-option text-gray-400 hover:text-red-500 transition-colors" data-index="${index}">
+                            <i class="fa fa-trash-o"></i>
+                        </button>
+                    `;
+
+                    optionsList.appendChild(optionElement);
+                });
+
+
+                document.querySelectorAll('.delete-option').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        wheelOptions.splice(index, 1);
+                        renderOptionsList();
+                        drawWheel();
+                    });
+                });
+            }
+
+
+            let isSpinning = false;
+            spinBtn.addEventListener('click', function () {
+                if (isSpinning || wheelOptions.length === 0) return;
+
+                isSpinning = true;
+                spinBtn.disabled = true;
+                spinBtn.classList.add('opacity-70', 'cursor-not-allowed');
+                result.classList.add('hidden');
+
+
+                const totalWeight = wheelOptions.reduce((sum, option) => sum + option.weight, 0);
+
+
+                let randomValue = Math.random() * totalWeight;
+                let selectedOptionIndex = 0;
+
+                for (let i = 0; i < wheelOptions.length; i++) {
+                    randomValue -= wheelOptions[i].weight;
+                    if (randomValue <= 0) {
+                        selectedOptionIndex = i;
+                        break;
+                    }
+                }
+
+                const selectedOption = wheelOptions[selectedOptionIndex];
+
+
+                const totalWeightBefore = wheelOptions.slice(0, selectedOptionIndex).reduce((sum, option) => sum + option.weight, 0);
+
+
+                const sliceAngle = (Math.PI * 2 * selectedOption.weight) / totalWeight;
+                const startAngle = (Math.PI * 2 * totalWeightBefore) / totalWeight;
+                const endAngle = startAngle + sliceAngle;
+
+
+                const targetAngle = (startAngle + endAngle) / 2 + Math.PI;
+
+
+                const extraSpins = 5 + Math.floor(Math.random() * 5);
+                const totalRotation = targetAngle + extraSpins * Math.PI * 2;
+
+
+                let startRotation = 0;
+                const duration = 5000;
+                const startTime = performance.now();
+
+
+                function animate(currentTime) {
+                    const elapsedTime = currentTime - startTime;
+
+                    if (elapsedTime < duration) {
+
+                        const progress = elapsedTime / duration;
+                        const easeOut = 1 - Math.pow(1 - progress, 3);
+
+
+                        const currentRotation = startRotation + totalRotation * easeOut;
+
+
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.save();
+                        ctx.translate(canvas.width / 2, canvas.height / 2);
+                        ctx.rotate(currentRotation);
+                        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+                        drawWheel();
+                        ctx.restore();
+
+                        requestAnimationFrame(animate);
+                    } else {
+
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.save();
+                        ctx.translate(canvas.width / 2, canvas.height / 2);
+                        ctx.rotate(startRotation + totalRotation);
+                        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+                        drawWheel();
+                        ctx.restore();
+
+                        resultText.textContent = selectedOption.name;
+                        result.classList.remove('hidden');
+
+
+                        isSpinning = false;
+                        spinBtn.disabled = false;
+                        spinBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    }
+                }
+
+
+                requestAnimationFrame(animate);
+            });
+
+
+            addOptionForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const name = document.getElementById('option-name').value.trim();
+                const weight = parseInt(document.getElementById('option-weight').value);
+                const color = document.getElementById('option-color').value;
+
+                if (name && weight > 0) {
+                    wheelOptions.push({ name, weight, color });
+                    renderOptionsList();
+                    drawWheel();
+
+
+                    this.reset();
+
+
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform transition-all duration-500 opacity-0 translate-y-[-20px]';
+                    notification.textContent = '选项添加成功！';
+                    document.body.appendChild(notification);
+
+
+                    setTimeout(() => {
+                        notification.classList.remove('opacity-0', 'translate-y-[-20px]');
+                    }, 100);
+
+
+                    setTimeout(() => {
+                        notification.classList.add('opacity-0', 'translate-y-[-20px]');
+                        setTimeout(() => {
+                            document.body.removeChild(notification);
+                        }, 500);
+                    }, 3000);
+                }
+            });
+
+
+            resetWheel.addEventListener('click', function () {
+                wheelOptions = [];
+                renderOptionsList();
+                drawWheel();
+
+
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform transition-all duration-500 opacity-0 translate-y-[-20px]';
+                notification.textContent = '转盘已重置！';
+                document.body.appendChild(notification);
+
+
+                setTimeout(() => {
+                    notification.classList.remove('opacity-0', 'translate-y-[-20px]');
+                }, 100);
+
+
+                setTimeout(() => {
+                    notification.classList.add('opacity-0', 'translate-y-[-20px]');
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 500);
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+
+</html>
