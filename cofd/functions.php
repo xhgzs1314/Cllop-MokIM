@@ -1,4 +1,19 @@
 <?php
+function getStableVisitorName()
+{
+    $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    $ip = explode(',', $ip)[0];
+    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        $ip = substr($ip, 0, strrpos($ip, '.'));
+    }
+    $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    $cache = '游客' . substr(md5($ip . '|' . $ua), 0, 8);
+    return $cache;
+}
+function getStableName($id)
+{
+    return '玩家' . substr(md5($id), 0, 8);
+}
 function mokim_ttl_elegant_exit($content, $callback = null, $type = 'info')
 {
     if ($callback !== null && is_callable($callback)) {
@@ -135,7 +150,10 @@ function generateAutoWebsiteIdentifier(bool $short = false): string
         'protocol' => $protocol,
         'domain'   => $domain,
         'port'     => $port,
-        'ip'       => $ip
+        'ip'       => $ip,
+        'hostname' => gethostname(),
+        'server_ip' => $_SERVER['SERVER_ADDR'] ?? '',
+        'run_user' => get_current_user(),
     ];
     if (empty($websiteInfo['domain']) && empty($websiteInfo['ip'])) {
         throw new RuntimeException('无法自动获取网站的核心标识信息（域名/IP），请检查运行环境');
@@ -144,7 +162,10 @@ function generateAutoWebsiteIdentifier(bool $short = false): string
         $websiteInfo['protocol'],
         $websiteInfo['domain'],
         $websiteInfo['ip'],
-        (string)$websiteInfo['port']
+        (string)$websiteInfo['port'],
+        $websiteInfo['hostname'],
+        $websiteInfo['server_ip'],
+        $websiteInfo['run_user'],
     ]);
     $hash = hash('sha256', $featureString);
     if ($short) {
