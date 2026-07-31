@@ -70,7 +70,10 @@ function conbine_auth_towdouble($waitingtoauthid)
             'protocol' => $protocol,
             'domain'   => $domain,
             'port'     => $port,
-            'ip'       => $ip
+            'ip'       => $ip,
+            'hostname' => gethostname(),
+            'server_ip' => $_SERVER['SERVER_ADDR'] ?? '',
+            'run_user' => get_current_user(),
         ];
         if (empty($websiteInfo['domain']) && empty($websiteInfo['ip'])) {
             throw new RuntimeException('无法自动获取网站的核心标识信息（域名/IP），请检查运行环境');
@@ -79,7 +82,10 @@ function conbine_auth_towdouble($waitingtoauthid)
             $websiteInfo['protocol'],
             $websiteInfo['domain'],
             $websiteInfo['ip'],
-            (string)$websiteInfo['port']
+            (string)$websiteInfo['port'],
+            $websiteInfo['hostname'],
+            $websiteInfo['server_ip'],
+            $websiteInfo['run_user'],
         ]);
         $hash = hash('sha256', $featureString);
         if ($short) {
