@@ -38,7 +38,7 @@ function update($updateurl)
 }
 function check_sq($version)
 {
-    $apiUrl = 'https://share.weiyun.com/wyHVLW6T';
+    $apiUrl = '';
     $ch = curl_init($apiUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
@@ -64,4 +64,3 @@ function check_sq($version)
     }
 }
 $version = $_GET['version'];
-check_sq($version);
